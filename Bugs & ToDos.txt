@@ -1,4 +1,0 @@
-// Bugs - ToDos
-//
-// int i2cSerial::peek() not clearly defined
-//

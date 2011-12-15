@@ -27,6 +27,7 @@
 // Nov 09, 2011 release 14 - proxySerial as autonomous project with ftoa utility
 // Nov 25, 2011 release 15 - faster dialog show/hide and optional area for screen copy to/read from SD
 // Nov 29, 2011 release 16 - read pixel colour and new colour functions
+// Dec 15, 2011 release 1-16 - Arduino 1.0 implementation - no longer compatible with 0022
 //
 //
 // * Tutorial
