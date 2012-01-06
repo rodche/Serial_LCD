@@ -1,13 +1,28 @@
-// Dialog example
+// 
+// μLCD-32PT(SGC) 3.2” Serial LCD Display Module
+// Arduino & chipKIT Library
 //
+// Jan 05, 2012 release 22 - see README.txt
+// © Rei VILO, 2010-2012
 // CC = BY NC SA
 // http://sites.google.com/site/vilorei/
+// http://github.com/rei-vilo/Serial_LCD
+//
+//
+// Based on
+// 4D LABS PICASO-SGC Command Set
+// Software Interface Specification
+// Document Date: 1st March 2011 
+// Document Revision: 6.0
+// http://www.4d-Labs.com
+//
+//
 
 #include "WProgram.h"
 //#include <Wire.h>
 
 #include "Serial_LCD.h"
-#include "button.h"
+#include "GUI.h"
 
 // Arduino Case : uncomment #include
 // #if defined(__AVR__) doesn't work!
@@ -38,8 +53,8 @@ Serial_LCD myLCD( &mySerial);
 uint16_t x, y;
 uint32_t l;
 
-button b7( &myLCD);
-dialog d1( &myLCD);
+button b7; // ( &myLCD);
+//dialog d1; // ( &myLCD);
 
 
 void setup() {
@@ -51,7 +66,7 @@ void setup() {
   Serial.print(__AVR__);
   Serial.print("\n");
   nss.begin(9600);
-  
+
 #elif defined(__PIC32MX__) 
   Serial.print("chipKIT\t");
   Serial.print(__PIC32MX__);
@@ -62,7 +77,13 @@ void setup() {
   myLCD.begin();
   myLCD.setOrientation(0x03);
 
-//  Wire.begin();
+
+  Serial.print("\n SD \t");
+  Serial.print(myLCD.initSD(), HEX);
+  Serial.print("\n RAW \t");
+  Serial.print(myLCD.checkRAW(), HEX);
+  Serial.print("\n write \t");
+  Serial.print(myLCD.appendStringFile("test.txt", "this is a test\n"), HEX);
 
   myLCD.setPenSolid(true);
   myLCD.setFontSolid(true);
@@ -74,21 +95,15 @@ void setup() {
 
   l=millis();
 
-  //  Serial.print("*** SD ");
-  //  Serial.print(myLCD.initSD(), DEC);
-  //  Serial.print("\n");
-
-  String s;
-  Serial.println("prompt 1");
-  s="*";
-//  s=d1.prompt(String("Dialog 1"), uint8_t(1), myLCD.rgb16(0xff,0xff,0xff), myLCD.rgb16(0x20,0x20,0x20), myLCD.rgb16(0x80,0x80,0x80), String("First line"), String("OK"), myLCD.rgb16(0xff,0xff,0xff), myLCD.rgb16(0x00,0xff,0x00), myLCD.rgb16(0x00,0x80,0x00),"","",0,0,0,"","",0,0,0);
-  s=d1.prompt(String("Dialog 1"), uint8_t(1), myLCD.rgb16(0xff,0xff,0xff), myLCD.rgb16(0x20,0x20,0x20), myLCD.rgb16(0x80,0x80,0x80), String("First line"), String("OK"), myLCD.rgb16(0xff,0xff,0xff), myLCD.rgb16(0x00,0xff,0x00), myLCD.rgb16(0x00,0x80,0x00));
-  Serial.print(s);
+  uint16_t u;
+  Serial.println("\n\nprompt 1");
+  u=dialog(&myLCD, "Dialog 1", uint8_t(1), myLCD.rgb16(0xff,0xff,0xff), myLCD.rgb16(0x20,0x20,0x20), myLCD.rgb16(0x80,0x80,0x80), String("First line"), String("OK"), myLCD.rgb16(0xff,0xff,0xff), myLCD.rgb16(0x00,0xff,0x00), myLCD.rgb16(0x00,0x80,0x00));
+  Serial.print(u, DEC);
   Serial.print("\n");
 
   myLCD.setFontSolid(true);
   myLCD.setFont(2);
-  myLCD.gText(0, 160, 0xffff, s); 
+  myLCD.gText(0, 160, 0xffff, u); 
 
 
   myLCD.setFont(3);
@@ -111,28 +126,17 @@ void setup() {
   myLCD.gText(0, 200, 0xffff, "12345678901234567890123456789012345678901234567890123"); 
   myLCD.gText(0, 220, 0xffff, ftoa(myLCD.fontX(), 0, 8)); 
 
-
-
-  // void dialog::prompt(String &result0, String text0, uint8_t kind0, uint16_t textColour0, uint16_t highColour0, uint16_t lowColour0,
-
-  // String text1, String button1="OK", uint16_t textColour1=0xffff, uint16_t highColour1=0x000f, uint16_t lowColour1=0x0008, 
-  // String text2="", String button2="", uint16_t textColour2=0, uint16_t highColour2=0, uint16_t lowColour2=0, 
-  // String text3="", String button3="", uint16_t textColour3=0, uint16_t highColour3=0, uint16_t lowColour3=0) {
-
-
-
-  Serial.println("prompt 2");
-  s="*";
-  s=d1.prompt(String("Dialog 2"), uint8_t(2), myLCD.rgb16(0xff,0xff,0xff), myLCD.rgb16(0x20,0x20,0x20), myLCD.rgb16(0x80,0x80,0x80), String("First line"), String("Yes"), myLCD.rgb16(0xff,0xff,0xff), myLCD.rgb16(0x00,0xff,0x00), myLCD.rgb16(0x00,0x80,0x00), "Second line","No",myLCD.rgb16(0xff,0xff,0xff), myLCD.rgb16(0xff,0x00,0x00), myLCD.rgb16(0x80,0x00,0x00),"Third line","Cancel",myLCD.rgb16(0xff,0xff,0xff), myLCD.rgb16(0xff,0xff,0x00), myLCD.rgb16(0x80,0x80,0x00));
-  Serial.print(s);
+  Serial.println("\n\nprompt 2");
+  u=dialog(&myLCD, String("Dialog 2"), uint8_t(2), myLCD.rgb16(0xff,0xff,0xff), myLCD.rgb16(0x20,0x20,0x20), myLCD.rgb16(0x80,0x80,0x80), String("First line"), String("Yes"), myLCD.rgb16(0xff,0xff,0xff), myLCD.rgb16(0x00,0xff,0x00), myLCD.rgb16(0x00,0x80,0x00), "Second line","No",myLCD.rgb16(0xff,0xff,0xff), myLCD.rgb16(0xff,0x00,0x00), myLCD.rgb16(0x80,0x00,0x00),"Third line","Cancel",myLCD.rgb16(0xff,0xff,0xff), myLCD.rgb16(0xff,0xff,0x00), myLCD.rgb16(0x80,0x80,0x00));
+  Serial.print(u, DEC);
   Serial.print("\n");
 
   myLCD.setFontSolid(true);
   myLCD.setFont(2);
-  myLCD.gText(0, 160, 0xffff, s); 
+  myLCD.gText(0, 160, 0xffff, u); 
 
   uint16_t i=9;
-  b7.define( 160, 120, 79, 59, "STOP",        myLCD.rgb16(0xff, 0xff, 0xff), myLCD.rgb16(0xff, 0x00, 0x00), myLCD.rgb16(0x88, 0x00, 0x00), i);
+  b7.dStringDefine(&myLCD, 160, 120, 79, 59, "STOP",        myLCD.rgb16(0xff, 0xff, 0xff), myLCD.rgb16(0xff, 0x00, 0x00), myLCD.rgb16(0x88, 0x00, 0x00), i);
 
   b7.enable(true);
   b7.draw();
@@ -165,4 +169,6 @@ void loop() {
   myLCD.gText( 250, 225, 0xffff, String(millis()-l));
   l=millis();
 }
+
+
 

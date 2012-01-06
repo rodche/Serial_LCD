@@ -1,4 +1,5 @@
-// Bugs - ToDos
-//
-// int i2cSerial::peek() not clearly defined
-//
+Bugs & ToDos
+
+
+
+see Roadmap at http://sites.google.com/site/vilorei/arduino/13--serial-touch-320x240-lcd-screen/roadmap

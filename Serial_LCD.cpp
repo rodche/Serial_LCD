@@ -1,27 +1,13 @@
-//
+// 
 // μLCD-32PT(SGC) 3.2” Serial LCD Display Module
 // Arduino & chipKIT Library
 //
-// May 10, 2011 release 1 - initial release
-// Jun 15, 2011 release 2 - features added and bugs fixed
-// Jun 29, 2011 release 3 - setBackGroundColour added and SD card
-// Jul 31, 2011 release 4 - stdint.h types for chipKIT compatibility
-// Aug 04, 2011 release 5 - chipKIT compatibility with external proxySerial.h
-// Aug 07, 2011 release 6 - playing sounds - up to 250 mA!
-// Sep 18, 2011 release 7 - dialog window with up to 3 buttons
-// Sep 23, 2011 release 8 - ms monitoring to avoid RX TX collapse
-// Oct 10, 2011 release 9 - Stream.h class based i2cSerial library
-// Oct 14, 2011 release 10 - ellipse and detectTouchRegion from sebgiroux
-// Oct 24, 2011 release 11 - serial port managed in main only - setSpeed added - proxySerial still needed
-// Oct 27, 2011 release 12 - setSpeed fixed for 155200 
-// Nov 02, 2011 release 13 - HardwareSerial derived from Stream on chipKIT platform by msproul
-// Nov 25, 2011 release 15 - faster dialog show/hide and optional area for screen copy to/read from SD
-// Nov 29, 2011 release 16 - read pixel colour and new colour functions
-//
-//
+// Jan 05, 2012 release 22 - see README.txt
+// © Rei VILO, 2010-2012
 // CC = BY NC SA
 // http://sites.google.com/site/vilorei/
 // http://github.com/rei-vilo/Serial_LCD
+//
 //
 // Based on
 // 4D LABS PICASO-SGC Command Set
@@ -31,9 +17,8 @@
 // http://www.4d-Labs.com
 //
 //
-#include "WProgram.h"
-//#include "Arduino.h"
 
+#include "WProgram.h"
 #include "proxySerial.h"
 #include "Serial_LCD.h"
 
@@ -69,8 +54,10 @@ void Serial_LCD::begin() {
   setOrientation(3);
   clear();
   setFont(1);
-  _checkedSD=false;  // SD not checked
+  _checkedSD = false;  // SD not checked
 
+  // screen size based on orientation
+  WhoAmI();
 }
 
 
@@ -93,15 +80,51 @@ uint8_t Serial_LCD::setSpeed(uint16_t speed) {
 }
 
 
+uint16_t _size(uint8_t ui) {
+  switch (ui) {
+  case 0x22 :     
+    return 220;
+  case 0x28 :     
+    return 128;
+  case 0x60 :     
+    return 160; 
+  case 0x64 :     
+    return 64; 
+  case 0x76 :     
+    return 176; 
+  case 0x96 :     
+    return 96; 
+  case 0x32 :     
+    return 320;
+  case 0x24 :     
+    return 240;
+  case 0x48 :     
+    return 480;  // assumed, to be checked
+  case 0x27 :     
+    return 272;  // assumed, to be checked
+  default   :     
+    return 0;
+  }
+}
+
 String Serial_LCD::WhoAmI() {  
+
   String s="Serial uLCD-32PT ";
   _port->print('V');
   _port->print((char)0x00);
   delay(10);
 
+  uint8_t i=0;
+  uint8_t c=0;
   while(_port->available()!=0) {
-    s += String(_port->read(), HEX);
+    c=_port->read();
+    s += String(c, HEX);
     s += " ";
+
+    if (i==3)  _maxX=_size(c); // standard
+    if (i==4)  _maxY=_size(c); // standard
+
+    i++;
   }
   return s;
 }
@@ -115,28 +138,29 @@ uint8_t Serial_LCD::clear() {
 void Serial_LCD::off() {
   clear();
 
-  _port->print('o');
-  _port->print((char)0x04);   // state
-  _port->flush();
-
-  setBacklight(false);  // backlight off
   clear();
+  //  _port->print('o');
+  //  _port->print((char)0x04);   // state
+  //  _port->flush();
+
+  setBacklight(false); // backlight off
   setDisplay(false);  // display off
 
+  while (_port->available()) _port->read();
   _port->print('Q');    // reset to default speed
   _port->print((char)0x06);    // 
   delay(10);
 }
 
 
-uint8_t Serial_LCD::setBacklight(bool b) {
+uint8_t Serial_LCD::setBacklight(boolean b) {
   _port->print('Y');
   _port->print((char)0x00);
-  _port->print(b ? (char)0x01 : (char)0x00);
+  _port->print((b) ? (char)0x01 : (char)0x00);
   return nacAck();
 }   
 
-uint8_t Serial_LCD::setDisplay(bool b) {
+uint8_t Serial_LCD::setDisplay(boolean b) {
   _port->print('Y');
   _port->print((char)0x01);
   _port->print(b ? (char)0x01 : (char)0x00);
@@ -158,7 +182,7 @@ uint8_t Serial_LCD::setContrast(uint8_t b) {
 
 
 uint8_t Serial_LCD::setOrientation(uint8_t b) {   // Display Control Functions – 59hex
-  _orientation=b;
+  _orientation = b;
   _port->print('Y');
   _port->print((char)0x04);
   _port->print(b);  // 
@@ -170,7 +194,7 @@ uint8_t Serial_LCD::getOrientation() {
   return _orientation; 
 } 
 
-uint8_t Serial_LCD::setTouch(bool b) {
+uint8_t Serial_LCD::setTouch(boolean b) {
   if (b) {
     _port->print('Y');
     _port->print((char)0x05);
@@ -213,6 +237,10 @@ uint8_t Serial_LCD::circle(uint16_t x1, uint16_t y1, uint16_t radius, uint16_t c
 }
 
 
+uint8_t Serial_LCD::dRectangle(uint16_t x0, uint16_t y0, uint16_t dx, uint16_t dy, uint16_t colour) {
+  return rectangle(x0, y0, x0+dx-1, y0+dy-1, colour);
+}
+
 uint8_t Serial_LCD::rectangle(uint16_t x1, uint16_t y1, uint16_t x2, uint16_t y2, uint16_t colour) {
   _port->print('r');
 
@@ -237,14 +265,18 @@ uint8_t Serial_LCD::ellipse(uint16_t x, uint16_t y, uint16_t rx, uint16_t ry, ui
   return nacAck();
 }  
 
+uint8_t Serial_LCD::dLine(uint16_t x0, uint16_t y0, uint16_t dx, uint16_t dy, uint16_t colour) {
+  return line(x0, y0, x0+dx-1, y0+dy-1, colour);
+}
+
 uint8_t Serial_LCD::line(uint16_t x1, uint16_t y1, uint16_t x2, uint16_t y2, uint16_t colour) {
   _port->print('L');
 
-  _port->print(x1);
-  _port->print(y1);
-  _port->print(x2);
-  _port->print(y2);
-  _port->print(colour);
+  _port->print((uint16_t)x1);
+  _port->print((uint16_t)y1);
+  _port->print((uint16_t)x2);
+  _port->print((uint16_t)y2);
+  _port->print((uint16_t)colour);
 
   return nacAck();
 }  
@@ -285,7 +317,7 @@ uint16_t Serial_LCD::readPixel(uint16_t x1, uint16_t y1) {
 
 
 uint8_t Serial_LCD::triangle(uint16_t x1, uint16_t y1, uint16_t x2, uint16_t y2, uint16_t x3, uint16_t y3, uint16_t colour) {
-  bool b=true;
+  boolean b=true;
 
   // Graham Scan + Andrew's Monotone Chain Algorithm
   // 1. Sort by ascending x
@@ -346,7 +378,7 @@ uint8_t Serial_LCD::triangle(uint16_t x1, uint16_t y1, uint16_t x2, uint16_t y2,
 
 
 
-uint8_t Serial_LCD::setPenSolid(bool b) {
+uint8_t Serial_LCD::setPenSolid(boolean b) {
   // 00hex : All graphics objects are drawn solid 
   // 01hex : All graphics objects are drawn wire-frame
   _port->print('p');
@@ -356,8 +388,6 @@ uint8_t Serial_LCD::setPenSolid(bool b) {
 
 
 // Text
-// 2011-06-15 release 2
-//   bug fixed, break added!
 uint8_t Serial_LCD::setFont(uint8_t b) {
   // 00hex : 6x8 (5x7 false) small size font set 
   // 01hex : 8x8 medium size font set 
@@ -422,9 +452,6 @@ uint8_t Serial_LCD::gText(uint16_t x, uint16_t y, uint16_t colour, String s) {
 
 
 // Touch
-// 2011-06-15 release 2
-//   +2 features
-//   case 1: touch down added
 //   return value 
 //     0 : No Touch Activity 
 //     1 : Touch Press 
@@ -475,7 +502,10 @@ uint8_t Serial_LCD::getTouchXY(uint16_t &x, uint16_t &y) {
 }
 
 
-// Oct 14, 2011 release 10 - ellipse and detectTouchRegion from sebgiroux
+uint8_t Serial_LCD::dDetectTouchRegion(uint16_t x0, uint16_t y0, uint16_t dx, uint16_t dy) {
+  return Serial_LCD::detectTouchRegion(x0, y0, x0+dx-1, y0+dy-1);
+}
+
 // filters only events 1=press and 3=move
 uint8_t Serial_LCD::detectTouchRegion(uint16_t x1, uint16_t y1, uint16_t x2, uint16_t y2) {
   _port->print('u');
@@ -488,10 +518,15 @@ uint8_t Serial_LCD::detectTouchRegion(uint16_t x1, uint16_t y1, uint16_t x2, uin
   return nacAck();
 }
 
-// 2011-06-29 release 3
-// 2.6 SD Memory Card Commands (FAT16-Level/DOS)
 // Initialise Memory Card - @69hex 
+// valid for FAT and RAW
+// 2.5 SD Memory Card Commands (Low-Level/RAW)
+// 2.6 SD Memory Card Commands (FAT16-Level/DOS)
 uint8_t Serial_LCD::initSD() {
+  uint8_t a;
+  _checkedSD = false; 
+  _checkedRAW = false; 
+
   // SD card 3000 ms power-up
   delay(3000);
   _port->print('@');
@@ -499,270 +534,393 @@ uint8_t Serial_LCD::initSD() {
 
   // answer = 210 ms
   delay(210);
-  char a = nacAck();
-  _checkedSD = (boolean)(a==0x06);
+  a = nacAck();
 
-  //  Serial.print("SDinit \t");
-  //  Serial.println(_checkedSD, DEC);
+  if (a==0x06) {
+    _checkedSD = true;
+    if ( findFile("RAW.INI")==0x06 ) { 
+      _checkedRAW = true;
+      delay(1000);
+    }
+  }
 
   return a;
 }
 
-/*
-  Read File from Card (FAT) - @61hex 
-  
-  filename   - The filename of the file to read
-  bytes      - The number of bytes to get each time (0=all, not a good idea when filesize > 512b)
-  cbReadFile - Callback function that is called every time data is received so a parser do its job.
-*/
-uint8_t Serial_LCD::readTextFile(String filename, uint8_t bytes, void (*cbReadFile)(String text)) {  
-  if (_checkedSD == 1) {
-    _port->print('@');
-    _port->print('a');
-    _port->print(bytes);
-    _port->print(filename);
-    _port->print((char) 0x00);    
-    
-    uint8_t i = 0;
-    char c = 0;
-    String s = "";
-    boolean done = false;
-    boolean fileSizeRead = false;
-    
-    do {
-      _port->print((char) 0x06);     
-        
-      i = 0;
-      s = "";
-      
-      if (!fileSizeRead && _port->available() > 0) {
-        uint8_t j = 0;
-        while (j < 4) {
-          _port->read();
-          j++;
-        }
-        
-        fileSizeRead = true;
-      }
-      else {
-        do {
-           c = _port->read();  
-           if (c == 0x06) {
-             done = true;
-             break;
-           }
-           else {
-             s = s + String(c);
-             i++;
-           }
-        } while (_port->available() && i < bytes);
-  
-        if (fileSizeRead) cbReadFile(s);
-      }
-    } while (!done && c != 0x06);
-    
-    return nacAck();
-  } 
-  else { 
-    return 0x15; 
-  }
+
+boolean Serial_LCD::checkSD() { 
+  return _checkedSD; 
+}
+boolean Serial_LCD::checkRAW() { 
+  return _checkedRAW; 
+}
+void Serial_LCD::setRAW(boolean b) {
+  _checkedRAW = b; 
 }
 
+uint8_t Serial_LCD::protectFAT(boolean b) {
+  _port->print('Y');
+  _port->print((char)0x08);
+  _port->print((b) ? (char)0x01 : (char)0x00);
+  return nacAck();
+}
+
+
+// 2.5 SD Memory Card Commands (Low-Level/RAW)
+// Screen Copy-Save to Card (RAW) - @43hex
+uint8_t Serial_LCD::saveScreenRAW(uint32_t sector) {
+  return dSaveScreenRAW(sector, 0, 0, maxX(), maxY());
+}
+
+// Screen Copy-Save to Card (RAW) - @43hex
+// x1, y1 x2, y2: same coordinates as rectangle
+uint8_t Serial_LCD::saveScreenRAW(uint32_t sector, uint16_t x1, uint16_t y1, uint16_t x2, uint16_t y2) {
+  return dSaveScreenRAW(sector, x1, y1, x2-x1+1, y2-y1+1);
+}
+
+// x0, y0 and width and height  
+uint8_t Serial_LCD::dSaveScreenRAW(uint32_t sector, uint16_t x0, uint16_t y0, uint16_t dx, uint16_t dy) {
+  if ( !_checkedSD ) return 0x15;
+
+Serial.print("\n dSaveScreenRAW \t");
+Serial.print(x0, DEC);
+Serial.print("\t");
+Serial.print(y0, DEC);
+Serial.print("\t");
+Serial.print(dx, DEC);
+Serial.print("\t");
+Serial.print(dy, DEC);
+
+  _port->print('@');
+  _port->print('C');
+  _port->print((uint16_t)x0);
+  _port->print((uint16_t)y0);
+  _port->print((uint16_t)dx);
+  _port->print((uint16_t)dy);
+  _port->print((uint8_t)((sector >> 8) & 0x00ff));  // high:
+  _port->print((uint16_t)(sector & 0xffff));        // mid:low
+
+  delay(10);
+  return nacAck();
+}
+
+// Display Object from Card (RAW) - @4Fhex     
+uint8_t Serial_LCD::readScreenRAW(uint32_t sector) {
+  return readScreenRAW(sector, 0, 0);
+}
+
+// Display Object from Card (RAW) - @4Fhex     
+// x1, y1: left-top coordinates
+uint8_t Serial_LCD::readScreenRAW(uint32_t sector, uint16_t x1, uint16_t y1) {
+  if ( !_checkedSD ) return 0x15;
+
+  // RAW image new format
+  _port->print('Y');
+  _port->print((char)0x06);   
+  _port->print((char)0x00);   
+  nacAck();
+
+//Serial.print("\n readScreenRAW \t");
+//Serial.print(x1, DEC);
+//Serial.print("\t");
+//Serial.print(y1, DEC);
+
+  _port->print('@');
+  _port->print('I');
+  _port->print((uint16_t)x1);
+  _port->print((uint16_t)y1);
+  _port->print((uint8_t)((sector >> 8) & 0x00ff));  // high:
+  _port->print((uint16_t)(sector & 0xffff));        // mid:low
+
+  delay(10);
+  return nacAck();
+}
+
+
+// 2.6 SD Memory Card Commands (FAT16-Level/DOS)
 // Write File to Card (FAT) - @74hex 
 // default option = 0
-uint8_t Serial_LCD::writeString2File(String filename, String text, uint8_t option) { 
+uint8_t Serial_LCD::writeStringFile(String filename, String text, uint8_t option) { 
   String s;
   uint8_t a;
   uint8_t j;
 
-  if (_checkedSD==1) {
-    j=text.length() >>4;
+  if ( !_checkedSD ) return 0x15;
 
-    // 16-uint8_t blocks
-    if (j>0) {
-      _port->print('@');
-      _port->print('t');
-      _port->print((char)(0x10 + option)); // hand-shaking
-      _port->print(filename);
-      _port->print((char)0x00);
-      _port->print((uint16_t)0x00);
-      _port->print((uint16_t)(j <<4));
-      a=nacAck();
+  j=text.length() >>4;
 
-      for (uint8_t i=0; i<j; i++) {
-        s=text.substring(i <<4, (i+1) <<4);
-        _port->print(s);
-        a=nacAck();
-      }
-    }
+  // 16-uint8_t blocks
+  if (j>0) {
+    _port->print('@');
+    _port->print('t');
+    _port->print((char)(0x10 + option)); // hand-shaking
+    _port->print(filename);
+    _port->print((char)0x00);
+    _port->print((uint16_t)0x00);
+    _port->print((uint16_t)(j <<4));
+    a=nacAck();
 
-    // remaining bytes
-    j=text.length() % 0x10;
-
-    if   (j > 0) {
-      _port->print('@');
-      _port->print('t');
-      _port->print((uint8_t)(0x00 + option));   // no hand-shaking
-      _port->print(filename);
-      _port->print((char)0x00);
-      _port->print((uint16_t)0x00);
-      _port->print((uint16_t)(j));
-      a=nacAck();
-
-      s=text.substring(text.length()-j, text.length());
+    for (uint8_t i=0; i<j; i++) {
+      s=text.substring(i <<4, (i+1) <<4);
       _port->print(s);
       a=nacAck();
     }
-
-    return a;
-  } 
-  else { 
-    return 0x15; 
   }
+
+  // remaining bytes
+  j=text.length() % 0x10;
+
+  if   (j > 0) {
+    _port->print('@');
+    _port->print('t');
+    _port->print((uint8_t)(0x00 + option));   // no hand-shaking
+    _port->print(filename);
+    _port->print((char)0x00);
+    _port->print((uint16_t)0x00);
+    _port->print((uint16_t)(j));
+    a=nacAck();
+
+    s=text.substring(text.length()-j, text.length());
+    _port->print(s);
+    a=nacAck();
+  }
+
+  return a;
 }
 
-uint8_t Serial_LCD::appendString2File(String filename, String text) { 
-  return writeString2File(filename, text, 0x80);  // append option
+uint8_t Serial_LCD::appendStringFile(String filename, String text) { 
+  return writeStringFile(filename, text, 0x80);  // append option
 }
+
+
+//  Read File from Card (FAT) - @61hex 
+//  
+//  filename   - The filename of the file to read
+//  bytes      - The number of bytes to get each time (0=all, not a good idea when filesize > 512b)
+//  cbReadFile - Callback function that is called every time data is received so a parser do its job.
+uint8_t Serial_LCD::readTextFile(String filename, uint8_t bytes, void (*cbReadFile)(String text)) {  
+  if ( !_checkedSD ) return 0x15;
+
+  _port->print('@');
+  _port->print('a');
+  _port->print(bytes);
+  _port->print(filename);
+  _port->print((char) 0x00);    
+
+  uint8_t i = 0;
+  char c = 0;
+  String s = "";
+  boolean done = false;
+  boolean fileSizeRead = false;
+
+  do {
+    _port->print((char) 0x06);     
+
+    i = 0;
+    s = "";
+
+    if (!fileSizeRead && _port->available() > 0) {
+      uint8_t j = 0;
+      while (j < 4) {
+        _port->read();
+        j++;
+      }
+      fileSizeRead = true;
+    }
+    else {
+      do {
+        c = _port->read();  
+        if (c == 0x06) {
+          done = true;
+          break;
+        }
+        else {
+          s = s + String(c);
+          i++;
+        }
+      } 
+      while (_port->available() && i < bytes);
+
+      if (fileSizeRead) cbReadFile(s);
+    }
+  } 
+  while (!done && c != 0x06);
+
+  return nacAck();
+}
+
 
 // Erase file from Card (FAT) - @65hex 
 uint8_t Serial_LCD::eraseFile(String filename) {  
-  if (_checkedSD==1) {
-    _port->print('@');
-    _port->print('e');
-    _port->print(filename);
-    _port->print((char)0x00);
+  uint8_t a;
+  if ( !_checkedSD ) return 0x15;
 
-    return nacAck();
-  } 
-  else { 
-    return 0x15; 
-  }
+  _port->print('@');
+  _port->print('e');
+  _port->print(filename);
+  _port->print((char)0x00);
+
+  return nacAck();
 }
+
 
 // List Directory from Card (FAT) - @64hex
 uint8_t Serial_LCD::findFile(String filename) {  
-  if (_checkedSD==1) {
-    _port->print('@');
-    _port->print('d');
-    _port->print(filename);
-    _port->print((char)0x00);
+  if ( !_checkedSD ) return 0x15;
 
-    String s="";  
-    char c=0;
+  _port->print('@');
+  _port->print('d');
+  _port->print(filename);
+  _port->print((char)0x00);
 
-    do 
-      if (_port->available()) {
-      c=_port->read();  
-      s=s+String(c);
+  char c;
+  String s="";  
+  boolean flag = false;
+
+  while (!flag) {
+    if (_port->available()) {
+      c = _port->read();  
+      flag = ( (c==0x06) || (c==0x15) || (c==0x0a) );
+      if (!flag) s = s + String(c);
     }
-    while ((c != 0x06) && (c != 0x15) && (c != 0x0a));
-    _port->flush();
+  }
+  while ( (c!=0x06) && (c!=0x15) ) c = _port->read();  
 
-    if ((c==0x15) || (c==0x06)) return 0x15;
-    if (s.length()==0) return 0x15;
-    if (filename.equalsIgnoreCase(s.substring(0, (s.indexOf(c))))) return 0x06 ;
-    return 0x15;
-  }
-  else { 
-    return 0x15; 
-  }
+  if (s.length()==0) return 0x15;
+  if (filename.equalsIgnoreCase(s.substring(0, (s.indexOf(c))))) return 0x06 ;
+  return 0x15;
 }
 
 
-uint8_t Serial_LCD::saveScreenSD(String filename) {    
-  saveScreenSD(filename, 0, 0, 319, 239);
+uint8_t Serial_LCD::saveScreenFAT(String filename) {    
+  return dSaveScreenFAT(filename, 0, 0, maxX(), maxY());
 }
 
 // Screen Copy-Save to Card (FAT) - @63hex 
 // x1, y1 x2, y2: same coordinates as rectangle
-uint8_t Serial_LCD::saveScreenSD(String filename, uint16_t x1, uint16_t y1, uint16_t x2, uint16_t y2) {    
-  if (_checkedSD==1) {
-    _port->print('@');
-    _port->print('c');
-    _port->print((uint16_t)x1);
-    _port->print((uint16_t)y1);
-    _port->print((uint16_t)(x2-x1+1));
-    _port->print((uint16_t)(y2-y1+1));
-    _port->print(filename);
-    _port->print((char)0x00);
-
-    return nacAck();
-  }
-  else { 
-    return 0x15; 
-  }
+uint8_t Serial_LCD::saveScreenFAT(String filename, uint16_t x1, uint16_t y1, uint16_t x2, uint16_t y2) {    
+  return dSaveScreenFAT(filename, x1, y1, x2-x1+1, y2-y1+1);
 }
+
+uint8_t Serial_LCD::dSaveScreenFAT(String filename, uint16_t x0, uint16_t y0, uint16_t dx, uint16_t dy) {    
+  uint8_t a;
+  if ( !_checkedSD ) return 0x15;
+
+Serial.print("\n dSaveScreenFAT \t");
+Serial.print(x0, DEC);
+Serial.print("\t");
+Serial.print(y0, DEC);
+Serial.print("\t");
+Serial.print(dx, DEC);
+Serial.print("\t");
+Serial.print(dy, DEC);
+
+  _port->print('@');
+  _port->print('c');
+  _port->print((uint16_t)x0);
+  _port->print((uint16_t)y0);
+  _port->print((uint16_t)dx);
+  _port->print((uint16_t)dy);
+  _port->print(filename);
+  _port->print((char)0x00);
+
+  return nacAck();
+}
+
 // Display Image-Icon from Card (FAT) - @6Dhex 
-uint8_t Serial_LCD::readScreenSD(String filename) {   
-  readScreenSD(filename, 0, 0);
+uint8_t Serial_LCD::readScreenFAT(String filename) {   
+  return readScreenFAT(filename, 0, 0);
 }
 
 // Display Image-Icon from Card (FAT) - @6Dhex 
 // x1, y1: left-top coordinates
-uint8_t Serial_LCD::readScreenSD(String filename, uint16_t x1, uint16_t y1) {   
-  if (_checkedSD==1) {
-    _port->print('@');
-    _port->print('m');
-    _port->print(filename);
-    _port->print((char)0x00);
-    _port->print((uint16_t)x1);
-    _port->print((uint16_t)y1);
-    _port->print((uint16_t)0x00);
-    _port->print((uint16_t)0x00);
+uint8_t Serial_LCD::readScreenFAT(String filename, uint16_t x1, uint16_t y1) {   
+  if ( !_checkedSD ) return 0x15;
 
-    return nacAck();
-  }
-  else { 
-    return 0x15; 
-  }
+//Serial.print("\n readScreenRAW \t");
+//Serial.print(x1, DEC);
+//Serial.print("\t");
+//Serial.print(y1, DEC);
+
+  _port->print('@');
+  _port->print('m');
+  _port->print(filename);
+  _port->print((char)0x00);
+  _port->print((uint16_t)x1);
+  _port->print((uint16_t)y1);
+  _port->print((uint16_t)0x00);
+  _port->print((uint16_t)0x00);
+
+  return nacAck();
 }
 
-// Aug 07, 2011 release 6 - playing sounds - up to 250 mA!
+
 // Play Audio WAV file from Card (FAT) - @6Chex 
 uint8_t Serial_LCD::playSoundSD(String filename, uint8_t option0) {   
-  if (_checkedSD==1) {
-    _port->print((uint8_t)0x6c);
-    _port->print((uint8_t)option0);
-    _port->print(filename);
-    _port->print((char)0x00);
+  if ( !_checkedSD ) return 0x15;
 
-    return nacAck();
-  }
-  else { 
-    return 0x15; 
-  }
+  _port->print((uint8_t)0x6c);
+  _port->print((uint8_t)option0);
+  _port->print(filename);
+  _port->print((char)0x00);
+
+  return nacAck();
 }
 
 // Run Script (4DSL) Program from Card (FAT) - @70hex
 
 
 // Utilities
+uint8_t Serial_LCD::fontX() {     
+  return _fontX;   
+}	
+uint8_t Serial_LCD::fontY() {     
+  return _fontY;   
+}	
 
 
-uint16_t Serial_LCD::rgb16(uint8_t red8, uint8_t green8, uint8_t blue8) {
-  // deprecated
-  return (red8 >> 3) << 11 | (green8 >> 2) << 5 | (blue8 >> 3);
+uint16_t Serial_LCD::maxX() {
+  if ((_orientation==1) || (_orientation==2)) return _maxY; // rotated
+  else return _maxX;                  // _orientation==3 or 4, standard
+}
+
+uint16_t Serial_LCD::maxY() {
+  if ((_orientation==1) || (_orientation==2)) return _maxX; // rotated
+  else return _maxY;                  // _orientation==3 or 4, standard
 }
 
 
+uint32_t Serial_LCD::getSectors(uint16_t x, uint16_t y, uint16_t sizeSector) {
+  uint32_t n = (uint32_t)(x*y*2+6);
+  if (n % sizeSector > 0) n += sizeSector;
+  n /= sizeSector;
+  return n;
+}
+
+// --- deprecated
+uint16_t Serial_LCD::rgb16(uint8_t red8, uint8_t green8, uint8_t blue8) {
+  return (red8 >> 3) << 11 | (green8 >> 2) << 5 | (blue8 >> 3);
+}
+// ---
+
 uint16_t Serial_LCD::setColour(uint8_t red8, uint8_t green8, uint8_t blue8) {
-    // rgb16 = red5 green6 blue5
-    return (red8 >> 3) << 11 | (green8 >> 2) << 5 | (blue8 >> 3);
+  // rgb16 = red5 green6 blue5
+  return (red8 >> 3) << 11 | (green8 >> 2) << 5 | (blue8 >> 3);
 }
 
 
 void Serial_LCD::splitColour(uint16_t rgb, uint8_t &red, uint8_t &green, uint8_t &blue) {
   // rgb16 = red5 green6 blue5
-    red   = (rgb & 0b1111100000000000) >> 11 << 3;
-    green = (rgb & 0b0000011111100000) >>  5 << 2;
-    blue  = (rgb & 0b0000000000011111)       << 3;
+  red   = (rgb & 0b1111100000000000) >> 11 << 3;
+  green = (rgb & 0b0000011111100000) >>  5 << 2;
+  blue  = (rgb & 0b0000000000011111)       << 3;
 }
 
 
 uint16_t Serial_LCD::halfColour(uint16_t rgb) {
-    // rgb16 = red5 green6 blue5 
-    return (rgb & 0b1111100000000000) >> 1 | (rgb & 0b0000011111100000) >> 1 | (rgb & 0b0000000000011111) >> 1;
+  // rgb16 = red5 green6 blue5 
+  return (rgb & 0b1111100000000000) >> 12 << 11 | (rgb & 0b0000011111100000) >> 6 << 5 | (rgb & 0b0000000000011111) >> 1;
+
 }
 
 
@@ -782,16 +940,6 @@ void Serial_LCD::_swap(uint16_t &a, uint16_t &b) {
   a=b;
   b=w;
 }
-
-
-
-
-
-
-
-
-
-
 
 
 
