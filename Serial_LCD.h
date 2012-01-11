@@ -2,7 +2,7 @@
 // μLCD-32PT(SGC) 3.2” Serial LCD Display Module
 // Arduino & chipKIT Library
 //
-// Jan 05, 2012 release 22 - see README.txt
+// Jan 11, 2012 release 23 - see README.txt
 // © Rei VILO, 2010-2012
 // CC = BY NC SA
 // http://sites.google.com/site/vilorei/
@@ -17,6 +17,7 @@
 // http://www.4d-Labs.com
 //
 //
+#define SERIAL_LCD_RELEASE 23
 
 #ifndef Serial_LCD_h
 #define Serial_LCD_h
@@ -24,6 +25,10 @@
 #include "WProgram.h"
 #include "proxySerial.h"
 
+// Test release
+#if PROXYSERIAL_RELEASE < 23
+#error required PROXYSERIAL_RELEASE 23
+#endif
 
 // Objects
 
@@ -36,7 +41,7 @@ public:
   void begin(); // AutoBaud – 55hex 
   uint8_t setSpeed(uint16_t speed); // Set new Baud-Rate - 51hex 
   String WhoAmI(); // Version-Device Info Request – 56hex 
-  // Replace Background Colour – 42hex 
+  uint8_t replaceBackGroundColour(uint16_t colour);  // Replace Background Colour – 42hex 
   uint8_t clear(); // Clear Screen – 45hex
   uint8_t setBacklight(boolean  b);   // Display Control Functions – 59hex 
   uint8_t setDisplay(boolean  b);   // Display Control Functions – 59hex
@@ -44,8 +49,10 @@ public:
   uint8_t setOrientation(uint8_t b);   // Display Control Functions – 59hex
   uint8_t getOrientation();  // Display Control Functions – 59hex
   uint8_t setTouch(boolean  b);   // Display Control Functions – 59hex
+  uint8_t setResolutionVGA(uint8_t b);   // Set VGA Resolution Control Functions – 59hex
   uint8_t setVolume(uint8_t percent); // Set Volume - 76hex 
   uint8_t protectFAT(boolean b);  // Display Control Functions – 59hex
+  uint8_t checkScreenType();
   // Sleep – 5Ahex 
   // Read GPIO Pin - 61hex
   // Write GPIO Pin - 69hex 
@@ -146,6 +153,7 @@ public:
 private:
   ProxySerial * _port;
 
+  uint8_t _checkedScreenType;
   boolean _checkedSD;
   boolean _checkedRAW;
   boolean _serialSoftFlag;

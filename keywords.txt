@@ -87,6 +87,9 @@ dLabel	KEYWORD2
 label	KEYWORD2
 dialog	KEYWORD2
 menu	KEYWORD2
+setResolutionVGA	KEYWORD2
+checkScreenType	KEYWORD2
+replaceBackGroundColour	KEYWORD2
 
 _lcd_nss	LITERAL1
 _font	LITERAL1
@@ -107,3 +110,4 @@ _checkedSD	LITERAL1
 _checkedRAW	LITERAL1
 _serialSoftFlag	LITERAL1
 _orientation	LITERAL1
+_checkedScreenType	LITERAL1

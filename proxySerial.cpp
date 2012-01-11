@@ -2,7 +2,7 @@
 // μLCD-32PT(SGC) 3.2” Serial LCD Display Module
 // Arduino & chipKIT Library
 //
-// Jan 05, 2012 release 22 - see README.txt
+// Jan 11, 2012 release 23 - see README.txt
 // © Rei VILO, 2010-2012
 // CC = BY NC SA
 // http://sites.google.com/site/vilorei/
@@ -45,7 +45,7 @@ String ftoa(float number, byte precision, byte size) {
         number = -number;
     }
     
-    double rounding = 0.5;
+    float rounding = 0.5;
     for (byte i = 0; i < precision; ++i)    rounding /= 10.0;
     
     number += rounding;
@@ -53,14 +53,14 @@ String ftoa(float number, byte precision, byte size) {
     
     if(precision > 0) {
         s += ".";                // prints the decimal point
-        unsigned long frac;
-        unsigned long mult = 1;
-        byte padding = precision -1;
+        uint32_t frac;
+        uint32_t mult = 1;
+        uint8_t padding = precision -1;
         while(precision--)     mult *= 10;
         
-        frac = (number - int(number)) * mult;
+        frac = (number - (uint64_t)(number)) * mult;
         
-        unsigned long frac1 = frac;
+        uint32_t frac1 = frac;
         while(frac1 /= 10)    padding--;
         while(padding--)      s += "0";
         

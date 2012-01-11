@@ -2,7 +2,7 @@
 μLCD-32PT(SGC) 3.2” Serial LCD Display Module
 Arduino & chipKIT Library
 
-Release 21
+Release 23
 © Rei VILO, 2010-2012
 CC = BY NC SA
 http://sites.google.com/site/vilorei/
@@ -30,14 +30,12 @@ Dec 27, 2011 release 19 - ready for GUI = button + dialog box + menu + label
 Dec 28, 2011 release 20 - item-based refactoring for dialog box, menu and label
 Dec 29, 2011 release 21 - readTextFile from sebgiroux
 Jan 05, 2012 release 22 - RAW for screen copy to/read from SD
+Jan 11, 2012 release 23 - VGA support and library release number check
 
 
 * Tutorial
-Basics: 
-http:sites.google.com/site/vilorei/arduino/13--serial-touch-320x240-lcd-screen/13i--back-to-basics
-
-Serial ports: 
-http:sites.google.com/site/vilorei/arduino/13--serial-touch-320x240-lcd-screen/13p--tutorial-2-playing-with-serial-ports
+Full documentation at
+http:sites.google.com/site/vilorei/arduino/13--serial-touch-320x240-lcd-screen
 
 
 * Required

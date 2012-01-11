@@ -2,7 +2,7 @@
 // μLCD-32PT(SGC) 3.2” Serial LCD Display Module
 // Arduino & chipKIT Library
 //
-// Jan 05, 2012 release 22 - see README.txt
+// Jan 11, 2012 release 23 - see README.txt
 // © Rei VILO, 2010-2012
 // CC = BY NC SA
 // http://sites.google.com/site/vilorei/
@@ -57,8 +57,27 @@ void Serial_LCD::begin() {
   _checkedSD = false;  // SD not checked
 
   // screen size based on orientation
+  // screen type
   WhoAmI();
 }
+
+
+uint8_t Serial_LCD::replaceBackGroundColour(uint16_t colour) {   
+  _port->print('B');
+  _port->print((uint16_t)colour);
+
+  return nacAck();
+}
+
+
+uint8_t Serial_LCD::setResolutionVGA(uint8_t b) {
+  if (_checkedScreenType!=2) return 0x15;   // VGA only
+
+  _port->print('Y');
+  _port->print((uint8_t)0x0c);
+  _port->print((uint8_t)b);
+  return nacAck();
+}   
 
 
 uint8_t Serial_LCD::setSpeed(uint16_t speed) {
@@ -108,7 +127,6 @@ uint16_t _size(uint8_t ui) {
 }
 
 String Serial_LCD::WhoAmI() {  
-
   String s="Serial uLCD-32PT ";
   _port->print('V');
   _port->print((char)0x00);
@@ -121,8 +139,9 @@ String Serial_LCD::WhoAmI() {
     s += String(c, HEX);
     s += " ";
 
-    if (i==3)  _maxX=_size(c); // standard
-    if (i==4)  _maxY=_size(c); // standard
+    if (i==0)  _checkedScreenType = c; // uLED=0, uLCD=1, uVGA=2
+    if (i==3)  _maxX = _size(c); // standard
+    if (i==4)  _maxY = _size(c); // standard
 
     i++;
   }
@@ -154,6 +173,8 @@ void Serial_LCD::off() {
 
 
 uint8_t Serial_LCD::setBacklight(boolean b) {
+  if (_checkedScreenType==2) return 0x15;   // except VGA 
+
   _port->print('Y');
   _port->print((char)0x00);
   _port->print((b) ? (char)0x01 : (char)0x00);
@@ -161,6 +182,8 @@ uint8_t Serial_LCD::setBacklight(boolean b) {
 }   
 
 uint8_t Serial_LCD::setDisplay(boolean b) {
+  if (_checkedScreenType==2) return 0x15;   // except VGA 
+
   _port->print('Y');
   _port->print((char)0x01);
   _port->print(b ? (char)0x01 : (char)0x00);
@@ -168,6 +191,8 @@ uint8_t Serial_LCD::setDisplay(boolean b) {
 }
 
 uint8_t Serial_LCD::setContrast(uint8_t b) {
+  if (_checkedScreenType==2) return 0x15;   // except VGA 
+
   if (b<=0x0f) {
     _port->print('Y');
     _port->print((char)0x02);
@@ -182,6 +207,8 @@ uint8_t Serial_LCD::setContrast(uint8_t b) {
 
 
 uint8_t Serial_LCD::setOrientation(uint8_t b) {   // Display Control Functions – 59hex
+  if (_checkedScreenType==2) return 0x15;   // except VGA 
+
   _orientation = b;
   _port->print('Y');
   _port->print((char)0x04);
@@ -195,6 +222,8 @@ uint8_t Serial_LCD::getOrientation() {
 } 
 
 uint8_t Serial_LCD::setTouch(boolean b) {
+  if (_checkedScreenType==2) return 0x15;   // except VGA 
+
   if (b) {
     _port->print('Y');
     _port->print((char)0x05);
@@ -458,6 +487,8 @@ uint8_t Serial_LCD::gText(uint16_t x, uint16_t y, uint16_t colour, String s) {
 //     2 : Touch Release 
 //     3 : Touch Moving
 uint8_t Serial_LCD::getTouchActivity() {
+  if (_checkedScreenType==2) return 0x15;   // except VGA 
+
   _port->print('o');
   _port->print((char)0x04);   // state
 
@@ -481,6 +512,8 @@ uint8_t Serial_LCD::getTouchActivity() {
 }
 
 uint8_t Serial_LCD::getTouchXY(uint16_t &x, uint16_t &y) {
+  if (_checkedScreenType==2) return 0x15;   // except VGA 
+
   _port->print('o');
   _port->print((char)0x05);   // coordinates
 
@@ -508,8 +541,9 @@ uint8_t Serial_LCD::dDetectTouchRegion(uint16_t x0, uint16_t y0, uint16_t dx, ui
 
 // filters only events 1=press and 3=move
 uint8_t Serial_LCD::detectTouchRegion(uint16_t x1, uint16_t y1, uint16_t x2, uint16_t y2) {
-  _port->print('u');
+  if (_checkedScreenType==2) return 0x15;   // except VGA 
 
+  _port->print('u');
   _port->print(x1);
   _port->print(y1);
   _port->print(x2);
@@ -566,6 +600,11 @@ uint8_t Serial_LCD::protectFAT(boolean b) {
 }
 
 
+uint8_t Serial_LCD::checkScreenType() {
+  return _checkedScreenType;
+}
+
+
 // 2.5 SD Memory Card Commands (Low-Level/RAW)
 // Screen Copy-Save to Card (RAW) - @43hex
 uint8_t Serial_LCD::saveScreenRAW(uint32_t sector) {
@@ -582,14 +621,14 @@ uint8_t Serial_LCD::saveScreenRAW(uint32_t sector, uint16_t x1, uint16_t y1, uin
 uint8_t Serial_LCD::dSaveScreenRAW(uint32_t sector, uint16_t x0, uint16_t y0, uint16_t dx, uint16_t dy) {
   if ( !_checkedSD ) return 0x15;
 
-Serial.print("\n dSaveScreenRAW \t");
-Serial.print(x0, DEC);
-Serial.print("\t");
-Serial.print(y0, DEC);
-Serial.print("\t");
-Serial.print(dx, DEC);
-Serial.print("\t");
-Serial.print(dy, DEC);
+  Serial.print("\n dSaveScreenRAW \t");
+  Serial.print(x0, DEC);
+  Serial.print("\t");
+  Serial.print(y0, DEC);
+  Serial.print("\t");
+  Serial.print(dx, DEC);
+  Serial.print("\t");
+  Serial.print(dy, DEC);
 
   _port->print('@');
   _port->print('C');
@@ -620,10 +659,10 @@ uint8_t Serial_LCD::readScreenRAW(uint32_t sector, uint16_t x1, uint16_t y1) {
   _port->print((char)0x00);   
   nacAck();
 
-//Serial.print("\n readScreenRAW \t");
-//Serial.print(x1, DEC);
-//Serial.print("\t");
-//Serial.print(y1, DEC);
+  //Serial.print("\n readScreenRAW \t");
+  //Serial.print(x1, DEC);
+  //Serial.print("\t");
+  //Serial.print(y1, DEC);
 
   _port->print('@');
   _port->print('I');
@@ -806,14 +845,14 @@ uint8_t Serial_LCD::dSaveScreenFAT(String filename, uint16_t x0, uint16_t y0, ui
   uint8_t a;
   if ( !_checkedSD ) return 0x15;
 
-Serial.print("\n dSaveScreenFAT \t");
-Serial.print(x0, DEC);
-Serial.print("\t");
-Serial.print(y0, DEC);
-Serial.print("\t");
-Serial.print(dx, DEC);
-Serial.print("\t");
-Serial.print(dy, DEC);
+  Serial.print("\n dSaveScreenFAT \t");
+  Serial.print(x0, DEC);
+  Serial.print("\t");
+  Serial.print(y0, DEC);
+  Serial.print("\t");
+  Serial.print(dx, DEC);
+  Serial.print("\t");
+  Serial.print(dy, DEC);
 
   _port->print('@');
   _port->print('c');
@@ -837,10 +876,10 @@ uint8_t Serial_LCD::readScreenFAT(String filename) {
 uint8_t Serial_LCD::readScreenFAT(String filename, uint16_t x1, uint16_t y1) {   
   if ( !_checkedSD ) return 0x15;
 
-//Serial.print("\n readScreenRAW \t");
-//Serial.print(x1, DEC);
-//Serial.print("\t");
-//Serial.print(y1, DEC);
+  //Serial.print("\n readScreenRAW \t");
+  //Serial.print(x1, DEC);
+  //Serial.print("\t");
+  //Serial.print(y1, DEC);
 
   _port->print('@');
   _port->print('m');
@@ -940,6 +979,10 @@ void Serial_LCD::_swap(uint16_t &a, uint16_t &b) {
   a=b;
   b=w;
 }
+
+
+
+
 
 
 
