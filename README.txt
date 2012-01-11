@@ -30,7 +30,7 @@ Dec 27, 2011 release 19 - ready for GUI = button + dialog box + menu + label
 Dec 28, 2011 release 20 - item-based refactoring for dialog box, menu and label
 Dec 29, 2011 release 21 - readTextFile from sebgiroux
 Jan 05, 2012 release 22 - RAW for screen copy to/read from SD
-Jan 11, 2012 release 23 - VGA support and library release number check
+Jan 11, 2012 release 23 - VGA support and library release number check, updated examples
 
 
 * Tutorial

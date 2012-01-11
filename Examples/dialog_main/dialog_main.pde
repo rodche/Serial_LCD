@@ -2,7 +2,7 @@
 // μLCD-32PT(SGC) 3.2” Serial LCD Display Module
 // Arduino & chipKIT Library
 //
-// Jan 05, 2012 release 22 - see README.txt
+// Example - see README.txt
 // © Rei VILO, 2010-2012
 // CC = BY NC SA
 // http://sites.google.com/site/vilorei/
@@ -19,10 +19,13 @@
 //
 
 #include "WProgram.h"
-//#include <Wire.h>
-
 #include "Serial_LCD.h"
 #include "GUI.h"
+
+// test release
+#if GUI_RELEASE < 23
+#error required GUI_RELEASE 23
+#endif
 
 // Arduino Case : uncomment #include
 // #if defined(__AVR__) doesn't work!

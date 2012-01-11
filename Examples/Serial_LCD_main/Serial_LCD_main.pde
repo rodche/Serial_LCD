@@ -1,14 +1,13 @@
-//
+// 
 // μLCD-32PT(SGC) 3.2” Serial LCD Display Module
-// Arduino Library
+// Arduino & chipKIT Library
 //
-// May 10, 2011 - Sample Code
-// Jul 31, 2011 - stdint.h library for chipKIT compatibility
-//
-
-//
+// Example - see README.txt
+// © Rei VILO, 2010-2012
 // CC = BY NC SA
 // http://sites.google.com/site/vilorei/
+// http://github.com/rei-vilo/Serial_LCD
+//
 //
 // Based on
 // 4D LABS PICASO-SGC Command Set
@@ -16,42 +15,72 @@
 // Document Date: 1st March 2011 
 // Document Revision: 6.0
 // http://www.4d-Labs.com
+//
+//
 
-//int foo;
-
-#include "Serial_LCD.h"
-
-//// Arduino Case : uncomment #include
-//#if defined(__AVR__) // doesn't work!
-//// ---
-//#include "NewSoftSerial.h"
-//// ===
-//#endif
 
 #include "proxySerial.h"
+#include "Serial_LCD.h"
 
-#if defined(__AVR__)
-// Arduino Case ---
+// test release
+#if SERIAL_LCD_RELEASE < 23
+#error required SERIAL_LCD_RELEASE 23
+#endif
+
+// === Serial port choice ===
+
+// uncomment for I2C serial interface
+//#define __I2C_Serial__
+
+// --- I2C Case -
+#if defined(__I2C_Serial__)
+#include "Wire.h"
+#include "I2C_Serial.h"
+I2C_Serial mySerial(0);
+ProxySerial myPort(&mySerial);
+
+// --- Arduino SoftwareSerial Case - Arduino only
+#elif defined(__AVR__) 
 #include "NewSoftSerial.h"
-NewSoftSerial nss(2, 3); // RX, TX
-ProxySerial mySerial(&nss);
+NewSoftSerial mySerial(2, 3); // RX, TX
+ProxySerial myPort(&mySerial);
 
+// --- chipKIT HardwareSerial Case - chipKIT
 #elif defined(__PIC32MX__) 
-// chipKIT Case ---
-ProxySerial mySerial(&Serial1);
+ProxySerial myPort(&Serial1);
 
 #else
 #error Non defined board
 #endif 
 
+// === End of Serial port choice ===
 
-Serial_LCD myLCD( &mySerial); 
+
+Serial_LCD myLCD( &myPort); 
 
 uint8_t aa;
 
 void setup() {
   Serial.begin(19200);
   Serial.print("\n\n\n***\n");
+
+  // === Serial port initialisation ===
+#if defined(__I2C_Serial__)
+  Serial.print("i2c\n");
+  Wire.begin();
+  mySerial.begin(9600);
+
+#elif defined(__AVR__)
+  Serial.print("avr\n");
+  mySerial.begin(9600);
+
+#elif defined(__PIC32MX__) 
+  Serial.print("chipKIT\n");
+  Serial1.begin(9600);
+
+#endif 
+  // === End of Serial port initialisation ===
+
 
   myLCD.begin();
 

@@ -1,26 +1,31 @@
-//
-// Life Game in Colour
-//
 // 
-// Nov 06, 2011 release 1 - initial release
-// Nov 07, 2011 release 2 - nicer colours!
-// Nov 08, 2011 release 3 - speedier display
-// Nov 11, 2011 release 4 - revised calculation for 16 colours
+// μLCD-32PT(SGC) 3.2” Serial LCD Display Module
+// Arduino & chipKIT Library
 //
-//
-// Required : Serial_LCD release 14
-// Nov 09, 2011 release 14 - proxySerial as autonomous project with ftoa utility
-//
-// Based on http://nathandumont.com/node/245
-// Submitted by nathan on Fri, 11/04/2011 - 20:46
-//
+// Example - see README.txt
+// © Rei VILO, 2010-2012
 // CC = BY NC SA
 // http://sites.google.com/site/vilorei/
 // http://github.com/rei-vilo/Serial_LCD
 //
 //
+// Based on
+// 4D LABS PICASO-SGC Command Set
+// Software Interface Specification
+// Document Date: 1st March 2011 
+// Document Revision: 6.0
+// http://www.4d-Labs.com
+//
+//
+
+
 #include "proxySerial.h"
 #include "Serial_LCD.h"
+
+// test release
+#if SERIAL_LCD_RELEASE < 23
+#error required SERIAL_LCD_RELEASE 23
+#endif
 
 #define ROWS 80
 #define COLS 60

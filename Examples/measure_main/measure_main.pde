@@ -1,27 +1,43 @@
-// Measure
+// 
+// μLCD-32PT(SGC) 3.2” Serial LCD Display Module
+// Arduino & chipKIT Library
 //
-// Example for
+// Example - see README.txt
+// © Rei VILO, 2010-2012
+// CC = BY NC SA
+// http://sites.google.com/site/vilorei/
+// http://github.com/rei-vilo/Serial_LCD
 //
-// Nov 25, 2011 release 15 - faster dialog show/hide and optional area for screen copy to/read from SD
 //
-
+// Based on
+// 4D LABS PICASO-SGC Command Set
+// Software Interface Specification
+// Document Date: 1st March 2011 
+// Document Revision: 6.0
+// http://www.4d-Labs.com
+//
+//
 
 
 #include "WProgram.h"
 #include "Serial_LCD.h"
-#include "button.h"
+#include "GUI.h"
 #include "proxySerial.h"
+
+// test release
+#if GUI_RELEASE < 23
+#error required GUI_RELEASE 23
+#endif
 
 ProxySerial mySerial(&Serial1);
 Serial_LCD myLCD( &mySerial); 
 uint16_t x, y;
 uint32_t l;
 
-button b7( &myLCD);
-dialog d1( &myLCD);
+button b7;
 
 void alphabet() {
-    myLCD.setFontSolid(true);
+  myLCD.setFontSolid(true);
 
   myLCD.setFont(3);
   myLCD.gText(0,  0, 0xffff, "         1         2    ");
@@ -47,7 +63,7 @@ void alphabet() {
 
 
 void setup() {
-uint8_t a;
+  uint8_t a;
 
   Serial.begin(19200);
   Serial.print("\n\n\n***\n");
@@ -63,13 +79,13 @@ uint8_t a;
   myLCD.gText( 0, 210, 0xffff, myLCD.WhoAmI());
   Serial.print(myLCD.WhoAmI());
   Serial.print("\n");
-  
-  
-  
-  
+
+
+
+
   myLCD.setTouch(true);
   myLCD.initSD();
-  
+
   Serial.print("\n");
   Serial.print("FULL screen \n");
 
@@ -78,16 +94,16 @@ uint8_t a;
   myLCD.line(319, 0,   0, 239, 0xffff);
 
   l=millis();
-  a=myLCD.saveScreenSD("dialog.tmp");
-  Serial.print(" saveScreenSD \t");
+  a=myLCD.saveScreenFAT("dialog.tmp");
+  Serial.print(" saveScreenFAT \t");
   Serial.print(millis()-l, DEC); 
   Serial.print("\n");
 
   alphabet();
 
   l=millis();
-  a=myLCD.readScreenSD("dialog.tmp");
-  Serial.print(" readScreenSD \t");
+  a=myLCD.readScreenFAT("dialog.tmp");
+  Serial.print(" readScreenFAT \t");
   Serial.print(millis()-l, DEC); 
   Serial.print("\n");
 
@@ -102,23 +118,23 @@ uint8_t a;
   myLCD.line(319, 0,   0, 239, 0xffff);
 
   l=millis();
-  a=myLCD.saveScreenSD("dialog.tmp", 60, 20, 260, 220);
-  Serial.print(" saveScreenSD \t");
+  a=myLCD.saveScreenFAT("dialog.tmp", 60, 20, 260, 220);
+  Serial.print(" saveScreenFAT \t");
   Serial.print(millis()-l, DEC); 
   Serial.print("\n");
 
   alphabet();
 
   l=millis();
-  a=myLCD.readScreenSD("dialog.tmp", 60, 20);
-  Serial.print(" readScreenSD \t");
+  a=myLCD.readScreenFAT("dialog.tmp", 60, 20);
+  Serial.print(" readScreenFAT \t");
   Serial.print(millis()-l, DEC); 
   Serial.print("\n");
 
 
 
   uint16_t i=9;
-  b7.define( 160, 120, 79, 59, "STOP",        myLCD.rgb16(0xff, 0xff, 0xff), myLCD.rgb16(0xff, 0x00, 0x00), myLCD.rgb16(0x88, 0x00, 0x00), i);
+  b7.define(&myLCD,  160, 120, 79, 59, setItem(0, "STOP"),        myLCD.setColour(0xff, 0xff, 0xff), myLCD.setColour(0xff, 0x00, 0x00), myLCD.setColour(0x88, 0x00, 0x00), i);
 
   b7.enable(true);
   b7.draw();
@@ -151,4 +167,5 @@ void loop() {
   myLCD.gText( 250, 225, 0xffff, String(millis()-l));
   l=millis();
 }
+
 

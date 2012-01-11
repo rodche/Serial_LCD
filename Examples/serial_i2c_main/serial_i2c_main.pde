@@ -1,6 +1,32 @@
+// 
+// μLCD-32PT(SGC) 3.2” Serial LCD Display Module
+// Arduino & chipKIT Library
+//
+// Example - see README.txt
+// © Rei VILO, 2010-2012
+// CC = BY NC SA
+// http://sites.google.com/site/vilorei/
+// http://github.com/rei-vilo/Serial_LCD
+//
+//
+// Based on
+// 4D LABS PICASO-SGC Command Set
+// Software Interface Specification
+// Document Date: 1st March 2011 
+// Document Revision: 6.0
+// http://www.4d-Labs.com
+//
+//
+
 #include "Serial_LCD.h"
 #include "proxySerial.h"
-#include "button.h"
+#include "GUI.h"
+
+// test release
+#if GUI_RELEASE < 23
+#error required GUI_RELEASE 23
+#endif
+
 
 // === Serial port choice
 // --- SoftwareSerial Case - Arduino only
@@ -25,7 +51,7 @@ Serial_LCD myLCD( &mySerial);
 uint16_t x, y;
 uint32_t l;
 
-button b7( &myLCD);
+button b7;
 
 
 
@@ -85,7 +111,7 @@ void setup() {
 
   l=millis();
 
-  b7.define( 0, 0, 79, 59, "Stop", myLCD.rgb16(0xff, 0xff, 0xff), myLCD.rgb16(0xff, 0x00, 0x00), myLCD.rgb16(0x88, 0x00, 0x00), 9);
+  b7.define(&myLCD, 0, 0, 79, 59, setItem(0, "Stop"), myLCD.setColour(0xff, 0xff, 0xff), myLCD.setColour(0xff, 0x00, 0x00), myLCD.setColour(0x88, 0x00, 0x00), 9);
 
   b7.enable(true);
   b7.draw();

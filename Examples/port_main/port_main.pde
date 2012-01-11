@@ -1,23 +1,13 @@
-//
+// 
 // μLCD-32PT(SGC) 3.2” Serial LCD Display Module
 // Arduino & chipKIT Library
 //
-// May 10, 2011 release 1 - initial release
-// Jun 15, 2011 release 2 - features added and bugs fixed
-// Jun 29, 2011 release 3 - setBackGroundColour added and SD card
-// Jul 31, 2011 release 4 - stdint.h types for chipKIT compatibility
-// Aug 04, 2011 release 5 - chipKIT compatibility with external proxySerial.h
-// Aug 07, 2011 release 6 - playing sounds - up to 250 mA!
-// Sep 18, 2011 release 7 - dialog window with up to 3 buttons
-// Sep 23, 2011 release 8 - ms monitoring to avoid RX TX collapse
-// Oct 10, 2011 release 9 - Stream.h class based I2C_Serial library
-// Oct 14, 2011 release 10 - ellipse and detectTouchRegion from sebgiroux
-// Oct 24, 2011 release 11 - serial port managed in main only - setSpeed added - proxySerial still needed
-//
-//
+// Example - see README.txt
+// © Rei VILO, 2010-2012
 // CC = BY NC SA
 // http://sites.google.com/site/vilorei/
 // http://github.com/rei-vilo/Serial_LCD
+//
 //
 // Based on
 // 4D LABS PICASO-SGC Command Set
@@ -27,34 +17,51 @@
 // http://www.4d-Labs.com
 //
 //
+
+
 #include "Serial_LCD.h"
 #include "proxySerial.h"
-#include "button.h"
-#include "Stream.h"
+#include "GUI.h"
 
-// I2C case --- ok
+// test release
+#if GUI_RELEASE < 23
+#error required GUI_RELEASE 23
+#endif
+
+// === Serial port choice ===
+
+// uncomment for I2C serial interface
+//#define __I2C_Serial__
+
+// --- I2C Case -
+#if defined(__I2C_Serial__)
 #include "Wire.h"
-//#include "I2C_Serial.h"
-//I2C_Serial myI2C_Serial(0);
-//ProxySerial myPort(&myI2C_Serial);
-// ---
+#include "I2C_Serial.h"
+I2C_Serial mySerial(0);
+ProxySerial myPort(&mySerial);
 
-// Arduino Case --- ok
+// --- Arduino SoftwareSerial Case - Arduino only
+#elif defined(__AVR__)
 #include "NewSoftSerial.h"
-NewSoftSerial mySoftSerial(2, 3); // RX, TX
-ProxySerial myPort(&mySoftSerial);
-// ---
+NewSoftSerial mySerial(2, 3); // RX, TX
+ProxySerial myPort(&mySerial);
 
-// chipKIT Case ---
-//ProxySerial myPort(&mySerial);
-// ---
+// --- chipKIT HardwareSerial Case - chipKIT
+#elif defined(__PIC32MX__) 
+ProxySerial myPort(&Serial1);
+
+#else
+#error Non defined board
+#endif 
+
+// === End of Serial port choice ===
 
 Serial_LCD myLCD( &myPort); 
 
 uint16_t x, y;
 uint32_t l;
 
-button b7( &myLCD);
+button b7;
 
 
 
@@ -62,25 +69,41 @@ void setup() {
   Serial.begin(19200);
   Serial.print("\n\n\n***\n");
 
-  // Cases ---
-//  Serial1.begin(9600); // chipKIT hardware case 
-  mySoftSerial.begin(9600); // software case
-//  Wire.begin(); // i2c case
-//  myI2C_Serial.begin(9600); // i2c case 
-  // ---
+  // === Serial port initialisation ===
+#if defined(__I2C_Serial__)
+  Serial.print("i2c\n");
+  Wire.begin();
+  mySerial.begin(9600);
+
+#elif defined(__AVR__)
+  Serial.print("avr\n");
+  mySerial.begin(9600);
+
+#elif defined(__PIC32MX__) 
+  Serial.print("chipKIT\n");
+  Serial1.begin(9600);
+
+#endif 
+  // === End of Serial port initialisation ===
 
   myLCD.begin();
 
   Serial.print("begin\n");
 
+  //  // === Serial port speed change ===
+  //  myLCD.setSpeed(38400);
+  //#if defined(__I2C_Serial__)
+  //  mySerial.begin(38400);
+  //
+  //#elif defined(__AVR__)
+  //  mySerial.begin(38400);
+  //
+  //#elif defined(__PIC32MX__) 
+  //  Serial1.begin(38400);
+  //
+  //#endif 
+  //  // === End of Serial port speed change ===
 
-  // Cases ---
-//  myLCD.setSpeed(19200);
-//  myI2C_Serial.begin(19200); // i2c = 38400 max
-//  mySoftSerial.begin(19200); // software = 38400 max
-//  myLCD.setSpeed(115200);
-//  Serial1.begin(115200);     // chipKIT hardware = 115200 ok
-  // ---
 
   myLCD.setOrientation(0x03);
 
@@ -94,7 +117,7 @@ void setup() {
 
   l=millis();
 
-  b7.define( 0, 0, 79, 59, "Stop", myLCD.rgb16(0xff, 0xff, 0xff), myLCD.rgb16(0xff, 0x00, 0x00), myLCD.rgb16(0x88, 0x00, 0x00), 9);
+  b7.define(&myLCD, 0, 0, 79, 59, setItem(0, "Stop"), myLCD.setColour(0xff, 0xff, 0xff), myLCD.setColour(0xff, 0x00, 0x00), myLCD.setColour(0x88, 0x00, 0x00), 9);
 
   b7.enable(true);
   b7.draw();
@@ -152,6 +175,7 @@ void loop() {
   myLCD.gText( 250, 225, 0xffff, ftoa(millis()-l, 0, 6));
   l=millis();
 }
+
 
 
 

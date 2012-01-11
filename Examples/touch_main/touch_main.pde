@@ -1,44 +1,38 @@
-//
+// 
 // μLCD-32PT(SGC) 3.2” Serial LCD Display Module
-// Arduino + chipKIT Library
+// Arduino & chipKIT Library
 //
-// May 10, 2011 release 1 - initial release
-// Jun 15, 2011 release 2 - features added and bugs fixed
-// Jun 29, 2011 release 3 - setBackGroundColour added and SD card
-// Jul 31, 2011 release 4 - stdint.h types for chipKIT compatibility
-// Aug 04, 2011 release 5 - chipKIT compatibility with external proxySerial.h
-// Aug 07, 2011 release 6 - playing sounds - up to 250 mA!
-// Sep 18, 2011 release 7 - dialog window with up to 3 buttons
-// Sep 23, 2011 release 8 - ms monitoring to avoid RX TX collapse
-// Oct 10, 2011 release 9 - Stream.h class based i2cSerial library
-// Oct 14, 2011 release 10 - ellipse and detectTouchRegion from sebgiroux
-//
-// SC16IS750 I2C slave bridge to serial
-// Arduino + chipKIT Library
-//
-// Oct 06, 2011 release 1 - initial release
-// Oct 10, 2011 release 2 - Stream.h class based
-//
-//
+// Example - see README.txt
+// © Rei VILO, 2010-2012
 // CC = BY NC SA
 // http://sites.google.com/site/vilorei/
+// http://github.com/rei-vilo/Serial_LCD
 //
-// Required
-// NewSoftSerial release 11
 //
 // Based on
 // 4D LABS PICASO-SGC Command Set
 // Software Interface Specification
-// Document Date: 1st March 2011     
+// Document Date: 1st March 2011 
 // Document Revision: 6.0
 // http://www.4d-Labs.com
+//
+//
+
 
 // Needs to be defined in both proxySerial and main program
 #define __i2cSerialPort__ 
 
 #include "Serial_LCD.h"
 #include "proxySerial.h"
-#include "button.h"
+#include "GUI.h"
+
+
+// test release
+#if GUI_RELEASE < 23
+#error required GUI_RELEASE 23
+#endif
+
+
 
 
 // I2C case
@@ -68,7 +62,7 @@ Serial_LCD myLCD( &mySerial);
 uint16_t x, y;
 uint32_t l;
 
-button b7( &myLCD);
+button b7;
 
 
 
@@ -105,24 +99,16 @@ void setup() {
 
   l=millis();
 
-  //  Serial.print("*** SD ");
-  //  Serial.print(myLCD.initSD(), DEC);
-  //  Serial.print("\n");
-
   myLCD.ellipse(100, 100, 50, 20, myLCD.rgb16(0xff,0x00,0x00));
 
-
-  b7.define( 0, 0, 79, 59, "STOP",        myLCD.rgb16(0xff, 0xff, 0xff), myLCD.rgb16(0xff, 0x00, 0x00), myLCD.rgb16(0x88, 0x00, 0x00), 9);
+  b7.define(&myLCD, 0, 0, 79, 59, setItem(0, "Stop"), myLCD.setColour(0xff, 0xff, 0xff), myLCD.setColour(0xff, 0x00, 0x00), myLCD.setColour(0x88, 0x00, 0x00), 9);
   b7.enable(true);
   b7.draw();
 
   myLCD.setPenSolid(false);
   myLCD.rectangle(40, 40, 200, 200, myLCD.rgb16(0x00, 0x00, 0xff));
 
-// Oct 14, 2011 release 10 - ellipse and detectTouchRegion from Sébastien Giroux
-// filters only events 1=press and 3=move
   myLCD.detectTouchRegion(40, 40, 200, 200);
-
 }
 
 uint8_t c;
