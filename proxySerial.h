@@ -2,7 +2,7 @@
 // μLCD-32PT(SGC) 3.2” Serial LCD Display Module
 // Arduino & chipKIT Library
 //
-// Jan 11, 2012 release 23 - see README.txt
+// Jan 14, 2012 release 24 - see README.txt
 // © Rei VILO, 2010-2012
 // CC = BY NC SA
 // http://sites.google.com/site/vilorei/
@@ -17,7 +17,7 @@
 // http://www.4d-Labs.com
 //
 //
-#define PROXYSERIAL_RELEASE 23
+#define PROXYSERIAL_RELEASE 24
 
 #include "WProgram.h"
 #include "Stream.h"
@@ -40,10 +40,13 @@ public:
   ProxySerial(Stream * port0);
 
   void begin(uint16_t b);  // to be managed at serial port level
+  void setXY16(boolean b);
   void print(int8_t i);
   void print(uint8_t ui);
   void print(int16_t i);
   void print(uint16_t ui);
+  void printXY(int16_t i);
+  void printXY(uint16_t ui);
   void print(char c);
   void print(String s);
 
@@ -54,7 +57,7 @@ public:
 private:
   uint16_t _millis;
   void _checkSpeed();
-
+  boolean _XY16;
   Stream * _proxyPort;
 };
 

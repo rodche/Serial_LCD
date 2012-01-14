@@ -2,7 +2,7 @@
 // μLCD-32PT(SGC) 3.2” Serial LCD Display Module
 // Arduino & chipKIT Library
 //
-// Jan 11, 2012 release 23 - see README.txt
+// Jan 14, 2012 release 24 - see README.txt
 // © Rei VILO, 2010-2012
 // CC = BY NC SA
 // http://sites.google.com/site/vilorei/
@@ -139,7 +139,10 @@ String Serial_LCD::WhoAmI() {
     s += String(c, HEX);
     s += " ";
 
-    if (i==0)  _checkedScreenType = c; // uLED=0, uLCD=1, uVGA=2
+    if (i==0)  {
+      _checkedScreenType = c; // 8-bits uLED=0, 16_bits uLCD=1, 16_bits uVGA=2
+      _port->setXY16( _checkedScreenType>0 );
+    }
     if (i==3)  _maxX = _size(c); // standard
     if (i==4)  _maxY = _size(c); // standard
 
@@ -257,9 +260,9 @@ uint8_t Serial_LCD::setVolume(uint8_t percent) { // Set Volume - 76hex
 uint8_t Serial_LCD::circle(uint16_t x1, uint16_t y1, uint16_t radius, uint16_t colour) {
   _port->print('C');
 
-  _port->print(x1);
-  _port->print(y1);
-  _port->print(radius);
+  _port->printXY(x1);
+  _port->printXY(y1);
+  _port->printXY(radius);
   _port->print(colour);
 
   return nacAck();
@@ -273,10 +276,10 @@ uint8_t Serial_LCD::dRectangle(uint16_t x0, uint16_t y0, uint16_t dx, uint16_t d
 uint8_t Serial_LCD::rectangle(uint16_t x1, uint16_t y1, uint16_t x2, uint16_t y2, uint16_t colour) {
   _port->print('r');
 
-  _port->print(x1);
-  _port->print(y1);
-  _port->print(x2);
-  _port->print(y2);
+  _port->printXY(x1);
+  _port->printXY(y1);
+  _port->printXY(x2);
+  _port->printXY(y2);
   _port->print(colour);
 
   return nacAck();
@@ -285,10 +288,10 @@ uint8_t Serial_LCD::rectangle(uint16_t x1, uint16_t y1, uint16_t x2, uint16_t y2
 uint8_t Serial_LCD::ellipse(uint16_t x, uint16_t y, uint16_t rx, uint16_t ry, uint16_t colour) {
   _port->print('e');
 
-  _port->print(x);
-  _port->print(y);
-  _port->print(rx);
-  _port->print(ry);
+  _port->printXY(x);
+  _port->printXY(y);
+  _port->printXY(rx);
+  _port->printXY(ry);
   _port->print(colour);
 
   return nacAck();
@@ -301,10 +304,10 @@ uint8_t Serial_LCD::dLine(uint16_t x0, uint16_t y0, uint16_t dx, uint16_t dy, ui
 uint8_t Serial_LCD::line(uint16_t x1, uint16_t y1, uint16_t x2, uint16_t y2, uint16_t colour) {
   _port->print('L');
 
-  _port->print((uint16_t)x1);
-  _port->print((uint16_t)y1);
-  _port->print((uint16_t)x2);
-  _port->print((uint16_t)y2);
+  _port->printXY((uint16_t)x1);
+  _port->printXY((uint16_t)y1);
+  _port->printXY((uint16_t)x2);
+  _port->printXY((uint16_t)y2);
   _port->print((uint16_t)colour);
 
   return nacAck();
@@ -323,8 +326,8 @@ uint8_t Serial_LCD::setBackGroundColour(uint16_t colour) {
 uint8_t Serial_LCD::point(uint16_t x1, uint16_t y1, uint16_t colour) {
   _port->print('P');
 
-  _port->print(x1);
-  _port->print(y1);
+  _port->printXY(x1);
+  _port->printXY(y1);
   _port->print(colour);
 
   return nacAck();
@@ -334,8 +337,8 @@ uint8_t Serial_LCD::point(uint16_t x1, uint16_t y1, uint16_t colour) {
 uint16_t Serial_LCD::readPixel(uint16_t x1, uint16_t y1) {
   _port->print('R');
 
-  _port->print(x1);
-  _port->print(y1);
+  _port->printXY(x1);
+  _port->printXY(y1);
 
   while (_port->available()<2);
   uint16_t c=0;
@@ -394,12 +397,12 @@ uint8_t Serial_LCD::triangle(uint16_t x1, uint16_t y1, uint16_t x2, uint16_t y2,
 
   _port->print('G');
 
-  _port->print(x1);
-  _port->print(y1);
-  _port->print(x2);
-  _port->print(y2);
-  _port->print(x3);
-  _port->print(y3);
+  _port->printXY(x1);
+  _port->printXY(y1);
+  _port->printXY(x2);
+  _port->printXY(y2);
+  _port->printXY(x3);
+  _port->printXY(y3);
   _port->print(colour);
 
   return nacAck();
@@ -456,8 +459,8 @@ uint8_t Serial_LCD::setFontSolid(uint8_t b) {
 
 uint8_t Serial_LCD::tText(uint8_t x, uint8_t y, uint16_t colour, String s) {
   _port->print('s');
-  _port->print(x);     // in character units
-  _port->print(y);
+  _port->printXY(x);     // in character units
+  _port->printXY(y);
   _port->print(_font);
   _port->print(colour);
   _port->print(s);
@@ -468,8 +471,8 @@ uint8_t Serial_LCD::tText(uint8_t x, uint8_t y, uint16_t colour, String s) {
 
 uint8_t Serial_LCD::gText(uint16_t x, uint16_t y, uint16_t colour, String s) {
   _port->print('S');
-  _port->print(x);    // in graphic units
-  _port->print(y);
+  _port->printXY(x);    // in graphic units
+  _port->printXY(y);
   _port->print(_font);
   _port->print(colour);
   _port->print((char)0x01);   // multiplier
@@ -544,10 +547,10 @@ uint8_t Serial_LCD::detectTouchRegion(uint16_t x1, uint16_t y1, uint16_t x2, uin
   if (_checkedScreenType==2) return 0x15;   // except VGA 
 
   _port->print('u');
-  _port->print(x1);
-  _port->print(y1);
-  _port->print(x2);
-  _port->print(y2);
+  _port->printXY(x1);
+  _port->printXY(y1);
+  _port->printXY(x2);
+  _port->printXY(y2);
 
   return nacAck();
 }
@@ -632,10 +635,10 @@ uint8_t Serial_LCD::dSaveScreenRAW(uint32_t sector, uint16_t x0, uint16_t y0, ui
 
   _port->print('@');
   _port->print('C');
-  _port->print((uint16_t)x0);
-  _port->print((uint16_t)y0);
-  _port->print((uint16_t)dx);
-  _port->print((uint16_t)dy);
+  _port->printXY((uint16_t)x0);
+  _port->printXY((uint16_t)y0);
+  _port->printXY((uint16_t)dx);
+  _port->printXY((uint16_t)dy);
   _port->print((uint8_t)((sector >> 8) & 0x00ff));  // high:
   _port->print((uint16_t)(sector & 0xffff));        // mid:low
 
@@ -666,8 +669,8 @@ uint8_t Serial_LCD::readScreenRAW(uint32_t sector, uint16_t x1, uint16_t y1) {
 
   _port->print('@');
   _port->print('I');
-  _port->print((uint16_t)x1);
-  _port->print((uint16_t)y1);
+  _port->printXY((uint16_t)x1);
+  _port->printXY((uint16_t)y1);
   _port->print((uint8_t)((sector >> 8) & 0x00ff));  // high:
   _port->print((uint16_t)(sector & 0xffff));        // mid:low
 
@@ -856,10 +859,10 @@ uint8_t Serial_LCD::dSaveScreenFAT(String filename, uint16_t x0, uint16_t y0, ui
 
   _port->print('@');
   _port->print('c');
-  _port->print((uint16_t)x0);
-  _port->print((uint16_t)y0);
-  _port->print((uint16_t)dx);
-  _port->print((uint16_t)dy);
+  _port->printXY((uint16_t)x0);
+  _port->printXY((uint16_t)y0);
+  _port->printXY((uint16_t)dx);
+  _port->printXY((uint16_t)dy);
   _port->print(filename);
   _port->print((char)0x00);
 
@@ -885,10 +888,10 @@ uint8_t Serial_LCD::readScreenFAT(String filename, uint16_t x1, uint16_t y1) {
   _port->print('m');
   _port->print(filename);
   _port->print((char)0x00);
-  _port->print((uint16_t)x1);
-  _port->print((uint16_t)y1);
-  _port->print((uint16_t)0x00);
-  _port->print((uint16_t)0x00);
+  _port->printXY((uint16_t)x1);
+  _port->printXY((uint16_t)y1);
+  _port->printXY((uint16_t)0x00);
+  _port->printXY((uint16_t)0x00);
 
   return nacAck();
 }
@@ -979,6 +982,7 @@ void Serial_LCD::_swap(uint16_t &a, uint16_t &b) {
   a=b;
   b=w;
 }
+
 
 
 

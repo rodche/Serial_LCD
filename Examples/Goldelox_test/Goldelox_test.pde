@@ -25,8 +25,8 @@
 #include "GUI.h"
 
 // test release
-#if GUI_RELEASE < 23
-#error required GUI_RELEASE 23
+#if GUI_RELEASE < 24
+#error required GUI_RELEASE 24
 #endif
 
 // Arduino Case : uncomment #include
@@ -71,52 +71,44 @@ void setup() {
   Serial.print("avr\t");
   Serial.print(__AVR__);
   Serial.print("\n");
+  nss.begin(9600);
 #elif defined(__PIC32MX__) 
   Serial.print("chipKIT\t");
   Serial.print(__PIC32MX__);
   Serial.print("\n");
+  Serial1.begin(9600);
 #endif 
+
+//  mySerial.begin(9600);
 
   myLCD.begin();
   myLCD.setOrientation(0x03);
 
-  Wire.begin();
-
   myLCD.setPenSolid(true);
   myLCD.setFontSolid(true);
-
   myLCD.setFont(0);
-  myLCD.gText( 0, 210, 0xffff, myLCD.WhoAmI());
+  myLCD.gText( 0, 60, 0xffff, myLCD.WhoAmI());
 
   myLCD.setTouch(true);
 
   l=millis();
 
-  uint16_t i=9;
-  b7.define(&myLCD,  160, 120, 79, 59, setItem(1, "STOP ALL"), myLCD.setColour(0xff, 0xff, 0xff), myLCD.setColour(0xff, 0x00, 0x00), myLCD.setColour(0x88, 0x00, 0x00), i);
+  Serial.print("\n maxX \t");
+  Serial.print( myLCD.maxX(), DEC);
+  Serial.print("\n maxY \t");
+  Serial.print( myLCD.maxY(), DEC);
+  Serial.print("\n");
+  Serial.print("\n xy16 \t");
+  Serial.print( myLCD.checkScreenType()>0, DEC);
+  
+  dLabel(&myLCD, 0, 0, myLCD.maxY(), 25, "label left",   myLCD.setColour(0xff, 0x00, 0x00), myLCD.setColour(0x00, 0x2f, 0x2f), 1, 0, 9);
+  dLabel(&myLCD, 0, myLCD.maxY()/3, myLCD.maxY(), 25, "label center", myLCD.setColour(0x00, 0xff, 0x00), myLCD.setColour(0x2f, 0x00, 0x2f), 0, 0, 9);
+  dLabel(&myLCD, 0, myLCD.maxY()*2/3, myLCD.maxY(), 25, "label right",  myLCD.setColour(0x00, 0x00, 0xff), myLCD.setColour(0x2f, 0x2f, 0x00), 2, 0, 9);
 
+  uint16_t i=9;
+  b7.dDefine(&myLCD,  myLCD.maxX()-80, myLCD.maxY()-60, 79, 59, setItem(1, "Stop"), myLCD.setColour(0xff, 0xff, 0xff), myLCD.setColour(0xff, 0x00, 0x00), myLCD.setColour(0x88, 0x00, 0x00), i);
   b7.enable(true);
   b7.draw();
-
-  //    myLCD.setFont(3);
-  //    myLCD.gText(0,  0, 0xffff, "         1         2    ");
-  //    myLCD.gText(0, 20, 0xffff, "12345678901234567890123456"); 
-  //    myLCD.gText(0, 60, 0xffff, ftoa(myLCD.fontX(), 0, 8)); 
-  //
-  //    myLCD.setFont(2);
-  //    myLCD.gText(0,  80, 0xffff, "         1         2         3         4");
-  //    myLCD.gText(0, 100, 0xffff, "1234567890123456789012345678901234567890"); 
-  //    myLCD.gText(0, 120, 0xffff, ftoa(myLCD.fontX(), 0, 8)); 
-
-  myLCD.setFont(1);
-  myLCD.gText(0,  0, 0xffff, "         1         2         3         4");
-  myLCD.gText(0, 20, 0xffff, "1234567890123456789012345678901234567890"); 
-  myLCD.gText(0, 60, 0xffff, ftoa(myLCD.fontX(), 0, 8)); 
-
-  myLCD.setFont(0);
-  myLCD.gText(0,  80, 0xffff, "         1         2         3         4         5");
-  myLCD.gText(0, 100, 0xffff, "12345678901234567890123456789012345678901234567890123"); 
-  myLCD.gText(0, 120, 0xffff, ftoa(myLCD.fontX(), 0, 8)); 
 }
 
 uint8_t c;
@@ -128,21 +120,18 @@ void loop() {
   if (c>0) {
     myLCD.getTouchXY(x, y);
     myLCD.setFont(0);
-    myLCD.gText(200, 0, 0xffff, ftoa(x, 0, 5)); 
-    myLCD.gText(200, 15, 0xffff, ftoa(y, 0, 5)); 
+    myLCD.gText(0, 50, 0xffff, ftoa(x, 0, 5)); 
+    myLCD.gText(myLCD.maxX()/3, 50, 0xffff, ftoa(y, 0, 5)); 
 
     // quit
     if (b7.check()) {
       myLCD.off();
       while(true);
     }
-
-
-
   }
   myLCD.setFont(0);
   myLCD.setFontSolid(true);
-  myLCD.gText( 250, 225, 0xffff, String(millis()-l));
+  myLCD.gText( myLCD.maxX()*2/3, 50, 0xffff, String(millis()-l));
   l=millis();
 }
 
