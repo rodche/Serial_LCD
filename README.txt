@@ -40,11 +40,15 @@ http:sites.google.com/site/vilorei/arduino/13--serial-touch-320x240-lcd-screen
 
 
 * Required
-NewSoftSerial release 11 beta
+. Arduino IDE 0023
+. NewSoftSerial release 11 beta
+http://arduiniana.org/2011/01/newsoftserial-11-beta/
 
 
 * Bugs & ToDos
-Roadmap:
+
+
+* Roadmap
 http://sites.google.com/site/vilorei/arduino/13--serial-touch-320x240-lcd-screen/roadmap
 
 
