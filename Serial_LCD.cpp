@@ -2,7 +2,7 @@
 // μLCD-32PT(SGC) 3.2” Serial LCD Display Module
 // Arduino & chipKIT Library
 //
-// Jan 14, 2012 release 24 - see README.txt
+// Jan 16, 2012 release 25 - see README.txt
 // © Rei VILO, 2010-2012
 // CC = BY NC SA
 // http://sites.google.com/site/vilorei/
@@ -139,12 +139,14 @@ String Serial_LCD::WhoAmI() {
     s += String(c, HEX);
     s += " ";
 
-    if (i==0)  {
+    if ( i==0 )  {
       _checkedScreenType = c; // 8-bits uLED=0, 16_bits uLCD=1, 16_bits uVGA=2
       _port->setXY16( _checkedScreenType>0 );
     }
-    if (i==3)  _maxX = _size(c); // standard
-    if (i==4)  _maxY = _size(c); // standard
+    if ( i==1 )  _checkedHardwareVersion = c;
+    if ( i==2 )  _checkedSoftwareVersion = c;
+    if ( i==3 )  _maxX = _size(c); // standard
+    if ( i==4 )  _maxY = _size(c); // standard
 
     i++;
   }
@@ -459,8 +461,8 @@ uint8_t Serial_LCD::setFontSolid(uint8_t b) {
 
 uint8_t Serial_LCD::tText(uint8_t x, uint8_t y, uint16_t colour, String s) {
   _port->print('s');
-  _port->printXY(x);     // in character units
-  _port->printXY(y);
+  _port->print(x);     // in character units
+  _port->print(y);
   _port->print(_font);
   _port->print(colour);
   _port->print(s);
@@ -575,10 +577,23 @@ uint8_t Serial_LCD::initSD() {
 
   if (a==0x06) {
     _checkedSD = true;
-    if ( findFile("RAW.INI")==0x06 ) { 
+    //    // Method 1 - Look for RAW.INI file
+    //    if ( findFile("RAW.INI")==0x06 ) { 
+    //      _checkedRAW = true;
+    //      delay(1000);
+    //    }
+    // Method 2 - Set Address Pointer of Card (RAW) - @41hex
+    _port->print('@');
+    _port->print('A');
+    _port->print((uint8_t)0);
+    _port->print((uint8_t)0);
+    _port->print((uint8_t)0);
+    _port->print((uint8_t)0);
+
+    if ( nacAck()==0x06 ) {
       _checkedRAW = true;
-      delay(1000);
     }
+    _port->flush(); // if no RAW, 5 times error message 0x15, only one read
   }
 
   return a;
@@ -606,7 +621,12 @@ uint8_t Serial_LCD::protectFAT(boolean b) {
 uint8_t Serial_LCD::checkScreenType() {
   return _checkedScreenType;
 }
-
+uint8_t Serial_LCD::checkHardwareVersion() {
+  return _checkedHardwareVersion;
+}
+uint8_t Serial_LCD::checkSoftwareVersion() {
+  return _checkedSoftwareVersion;
+}
 
 // 2.5 SD Memory Card Commands (Low-Level/RAW)
 // Screen Copy-Save to Card (RAW) - @43hex
@@ -624,14 +644,14 @@ uint8_t Serial_LCD::saveScreenRAW(uint32_t sector, uint16_t x1, uint16_t y1, uin
 uint8_t Serial_LCD::dSaveScreenRAW(uint32_t sector, uint16_t x0, uint16_t y0, uint16_t dx, uint16_t dy) {
   if ( !_checkedSD ) return 0x15;
 
-  Serial.print("\n dSaveScreenRAW \t");
-  Serial.print(x0, DEC);
-  Serial.print("\t");
-  Serial.print(y0, DEC);
-  Serial.print("\t");
-  Serial.print(dx, DEC);
-  Serial.print("\t");
-  Serial.print(dy, DEC);
+  //  Serial.print("\n dSaveScreenRAW \t");
+  //  Serial.print(x0, DEC);
+  //  Serial.print("\t");
+  //  Serial.print(y0, DEC);
+  //  Serial.print("\t");
+  //  Serial.print(dx, DEC);
+  //  Serial.print("\t");
+  //  Serial.print(dy, DEC);
 
   _port->print('@');
   _port->print('C');
@@ -646,13 +666,10 @@ uint8_t Serial_LCD::dSaveScreenRAW(uint32_t sector, uint16_t x0, uint16_t y0, ui
   return nacAck();
 }
 
-// Display Object from Card (RAW) - @4Fhex     
-uint8_t Serial_LCD::readScreenRAW(uint32_t sector) {
-  return readScreenRAW(sector, 0, 0);
-}
 
 // Display Object from Card (RAW) - @4Fhex     
 // x1, y1: left-top coordinates
+// no coordinates: 0, 0 for full screen
 uint8_t Serial_LCD::readScreenRAW(uint32_t sector, uint16_t x1, uint16_t y1) {
   if ( !_checkedSD ) return 0x15;
 
@@ -662,10 +679,10 @@ uint8_t Serial_LCD::readScreenRAW(uint32_t sector, uint16_t x1, uint16_t y1) {
   _port->print((char)0x00);   
   nacAck();
 
-  //Serial.print("\n readScreenRAW \t");
-  //Serial.print(x1, DEC);
-  //Serial.print("\t");
-  //Serial.print(y1, DEC);
+  //  Serial.print("\n readScreenRAW \t");
+  //  Serial.print(x1, DEC);
+  //  Serial.print("\t");
+  //  Serial.print(y1, DEC);
 
   _port->print('@');
   _port->print('I');
@@ -848,14 +865,14 @@ uint8_t Serial_LCD::dSaveScreenFAT(String filename, uint16_t x0, uint16_t y0, ui
   uint8_t a;
   if ( !_checkedSD ) return 0x15;
 
-  Serial.print("\n dSaveScreenFAT \t");
-  Serial.print(x0, DEC);
-  Serial.print("\t");
-  Serial.print(y0, DEC);
-  Serial.print("\t");
-  Serial.print(dx, DEC);
-  Serial.print("\t");
-  Serial.print(dy, DEC);
+  //  Serial.print("\n dSaveScreenFAT \t");
+  //  Serial.print(x0, DEC);
+  //  Serial.print("\t");
+  //  Serial.print(y0, DEC);
+  //  Serial.print("\t");
+  //  Serial.print(dx, DEC);
+  //  Serial.print("\t");
+  //  Serial.print(dy, DEC);
 
   _port->print('@');
   _port->print('c');
@@ -869,20 +886,17 @@ uint8_t Serial_LCD::dSaveScreenFAT(String filename, uint16_t x0, uint16_t y0, ui
   return nacAck();
 }
 
-// Display Image-Icon from Card (FAT) - @6Dhex 
-uint8_t Serial_LCD::readScreenFAT(String filename) {   
-  return readScreenFAT(filename, 0, 0);
-}
 
 // Display Image-Icon from Card (FAT) - @6Dhex 
 // x1, y1: left-top coordinates
+// no coordinates: 0, 0 for full screen
 uint8_t Serial_LCD::readScreenFAT(String filename, uint16_t x1, uint16_t y1) {   
   if ( !_checkedSD ) return 0x15;
 
-  //Serial.print("\n readScreenRAW \t");
-  //Serial.print(x1, DEC);
-  //Serial.print("\t");
-  //Serial.print(y1, DEC);
+  //  Serial.print("\n readScreenRAW \t");
+  //  Serial.print(x1, DEC);
+  //  Serial.print("\t");
+  //  Serial.print(y1, DEC);
 
   _port->print('@');
   _port->print('m');
@@ -982,6 +996,10 @@ void Serial_LCD::_swap(uint16_t &a, uint16_t &b) {
   a=b;
   b=w;
 }
+
+
+
+
 
 
 

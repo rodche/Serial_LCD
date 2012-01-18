@@ -1,0 +1,353 @@
+// 
+// μLCD-32PT(SGC) 3.2” Serial LCD Display Module
+// Arduino & chipKIT Library
+//
+// Example - see README.txt
+// © Rei VILO, 2010-2012
+// CC = BY NC SA
+// http://sites.google.com/site/vilorei/
+// http://github.com/rei-vilo/Serial_LCD
+//
+//
+// Based on
+// 4D LABS PICASO-SGC Command Set
+// Software Interface Specification
+// Document Date: 1st March 2011 
+// Document Revision: 6.0
+// http://www.4d-Labs.com
+//
+//
+
+#include "WProgram.h"
+#include "Wire.h"
+#include "Serial_LCD.h"
+#include "GUI.h"
+#include "proxySerial.h"
+
+// test release
+#if GUI_RELEASE < 23
+#error required GUI_RELEASE 23
+#endif
+
+// === Serial port choice ===
+
+// uncomment for I2C serial interface
+//#define __I2C_Serial__
+
+// --- I2C Case -
+#if defined(__I2C_Serial__)
+#include "Wire.h"
+#include "I2C_Serial.h"
+I2C_Serial mySerial(0);
+ProxySerial myPort(&mySerial);
+
+// --- Arduino SoftwareSerial Case - Arduino only
+#elif defined(__AVR__)
+#include "NewSoftSerial.h"
+NewSoftSerial mySerial(2, 3); // RX, TX
+ProxySerial myPort(&mySerial);
+
+// --- chipKIT HardwareSerial Case - chipKIT
+#elif defined(__PIC32MX__) 
+ProxySerial myPort(&Serial1);
+
+#else
+#error Non defined board
+#endif 
+
+// === End of Serial port choice ===
+
+
+Serial_LCD myLCD( &myPort); 
+
+uint16_t x, y;
+uint32_t l;
+
+button myButton;
+
+// ---
+
+uint8_t partidx[7] = { 
+  0, 1, 1, 1, 2, 2, 3 };
+
+String FATtypes[4] = { 
+  "FAT 12", "FAT 16", "FAT 32", "NTFS (or exFAT)" };
+
+const uint8_t BSI_BOOTSIG =         38;      // boot sector boot signature offset  
+const uint8_t BSI_FSTYPE =        54;       // boot sector file system type string offset  
+const uint16_t SYSTEM_ID =         0x01c2;    // Partition type ID  
+//    0x1      * FAT12 primary partition or logical drive (fewer than 32,680 sectors in the volume)  
+//    0x4      * FAT16 partition or logical drive (32,680–65,535 sectors or 16 MB–33 MB)  
+//    0x6      * BIGDOS FAT16 partition or logical drive (33MB – 4 GB)  
+//    0x7      * Installable File System (NTFS partition or logical drive)  
+//    0xB      * FAT32 partition or logical drive  
+//    0xC      * FAT32 partition or logical drive using BIOS INT 13h extensions  
+//    0xE      * BIGDOS FAT16 partition or logical drive using BIOS INT 13h extensions  
+
+// returns  
+// 0 no valid MBR or partition  
+// 0 MBR FAT12  
+// 1 partitioned fat16  
+// 1 MBR FAT16  
+// 3 NTFS or EXFAT  
+
+
+
+uint8_t sectorbuf[512];
+
+String from(uint16_t f, uint16_t n) {
+  String s = "";
+  for (uint16_t i=0; i<n; i++) 
+    s += char(sectorbuf[f+i]);
+
+  return s;
+}
+
+void DiskCheck() {  
+  String p;
+  int8_t id, r;  
+  uint16_t j, k, n;
+  uint8_t c, a;
+
+  if(!myLCD.checkSD()) {                     
+    Serial.print("checkSD / media_Init failed\n") ;  
+    return;
+  }
+
+  Serial.print("checkSD / media_Init sucessful\n") ;  
+
+  //    media_SetSector(0, 0);              // set stream sector address  
+  //    if(!media_RdSector(sectorbuf))  
+  //        Serial.print("media_RdSector failed\n") ;  
+  //        repeat forever  
+  //    endif  
+
+
+  //// Read Sector Block Data from Card (RAW) - @52hex => goes to RAW
+  //  Serial.print("Sector 0 --- ");
+  //  mySerial.print('@');
+  //  mySerial.print('R');
+  //  mySerial.print((uint8_t)0);
+  //  mySerial.print((uint8_t)0);
+  //  mySerial.print((uint8_t)0);
+  //  for (uint16_t i=0; i<512; i++) {
+  //    c = mySerial.read();
+  //    //    sectorbuf[i] = mySerial.read();
+  //    if ( i % 32 == 0 ) Serial.print("\n");
+  //    sectorbuf[i] = c;
+  //    Serial.print(c, HEX);
+  //    Serial.print(" ");
+  //  }
+  //  Serial.print("\n--- \n");
+
+  // Set Address Pointer of Card (RAW) - @41hex
+  // Read Byte Data from Card (RAW) - @72hex
+  mySerial.print('@');
+  mySerial.print('A');
+  mySerial.print((uint8_t)0);
+  mySerial.print((uint8_t)0);
+  mySerial.print((uint8_t)0);
+  mySerial.print((uint8_t)0);
+delay(100);//  while ( !mySerial.available() );
+  a = mySerial.read();
+  if ( a==0x06 ) {  
+    Serial.print("Address Pointer of Card (RAW) = 00000000 \n"); 
+    Serial.print("Sector 0 --- ");
+    for (uint16_t i=0; i<512; i++) {
+      mySerial.print('@');
+      mySerial.print('r');
+      c = mySerial.read();
+      //    sectorbuf[i] = mySerial.read();
+      if ( i % 32 == 0 ) Serial.print("\n");
+      sectorbuf[i] = c;
+      Serial.print(c, HEX);
+      Serial.print(" ");
+    }
+    Serial.print("\n--- \n");
+
+  } 
+  else {
+    Serial.print("NO Address Pointer of Card (RAW) = 00000000 \n"); 
+  }
+
+  if (  (sectorbuf[510]==0xaa) && (sectorbuf[511]==0x55) ) {
+    id = -1 ;  
+    r = -1;  
+    if ( sectorbuf[BSI_BOOTSIG]==0x29 ) {    // check for valid MBR boot sig  
+
+      if      ( from(BSI_FSTYPE, 5).equalsIgnoreCase("FAT12") ) r = 0 ;  
+      else if ( from(BSI_FSTYPE, 5).equalsIgnoreCase("FAT16") ) r = 1 ;  
+      else if ( from(BSI_FSTYPE, 5).equalsIgnoreCase("FAT32") ) r = 2 ;  
+    } 
+    else {
+      if      ( from(3, 8).equalsIgnoreCase("NTFS    ") ) r = 3 ;  
+      else if ( from(3, 8).equalsIgnoreCase("EXFAT   ") ) r = 3 ;  
+    }
+
+    if ( r>=0 )  {
+      Serial.print("MBR ");
+      Serial.print(FATtypes[r]);       // yes its MBR type  
+      id = 0;  
+    }        
+    else  {
+      switch (sectorbuf[SYSTEM_ID]) {    // MBR FAT type?  
+      case 0x01:
+      case 0x04: 
+      case 0x06:
+      case 0x0e:
+      case 0x0b:
+      case 0x0c:
+      case 0x07:
+        Serial.print("Unrecognised Partition id 0x");
+        Serial.print(sectorbuf[SYSTEM_ID], HEX) ;  
+        break;
+      default: 
+        id--;  
+        Serial.print("Partitioned ") ;  
+        r = partidx[id];  
+        Serial.print(FATtypes[r]);  
+
+        Serial.print("\n# Type Start    Length\n") ;  
+
+        j = 0x1c6;     // byte offset for partition info  
+        k = 0xe1;      // word offset for partition type  
+        n = 0;  
+        while (n++ < 4) {
+          Serial.print(n, HEX);
+          Serial.print("\t");
+          Serial.print(sectorbuf[k], HEX);      // print partition number and type  
+          Serial.print("\t");
+          Serial.print(sectorbuf[j], HEX);
+          //                    str_Printf(&p,"  %08lX %08lX\n");       // print partition start address and size  
+          j += 16;    // next info  
+          k += 8;     // next type  
+        }  
+      }  
+    }  
+  }
+  else  {
+    Serial.print("No Valid MBR or Partition\nTable found\n") ;  
+  }
+
+  if (r==1) { 
+    Serial.print("\nMountable.....\n");  
+    //        if (file_Mount())  {
+    //            Serial.print("\nMount test OK");  
+    //            file_Unmount();  
+    //        } else {
+    //            Serial.print("\nMount test failed");  
+    //       }
+  }  
+  else  {
+    Serial.print("\nUnmountable");  
+  } 
+
+  //  return id;  
+}  
+
+
+// ---
+
+void setup() {
+  Serial.begin(19200);
+  Serial.print("\n\n\n***\n");
+
+  // === Serial port initialisation ===
+#if defined(__I2C_Serial__)
+  Serial.print("i2c\n");
+  Wire.begin();
+  mySerial.begin(9600);
+
+#elif defined(__AVR__)
+  Serial.print("avr\n");
+  mySerial.begin(9600);
+
+#elif defined(__PIC32MX__) 
+  Serial.print("chipKIT\n");
+  Serial1.begin(9600);
+
+#endif 
+  // === End of Serial port initialisation ===
+
+  myLCD.begin();  // 9600 at start-up
+
+  //  // === Serial port speed change ===
+  //  myLCD.setSpeed(38400);
+  //#if defined(__I2C_Serial__)
+  //  mySerial.begin(38400);
+  //
+  //#elif defined(__AVR__)
+  //  mySerial.begin(38400);
+  //
+  //#elif defined(__PIC32MX__) 
+  //  Serial1.begin(38400);
+  //
+  //#endif 
+  //  // === End of Serial port speed change ===
+
+  myLCD.initSD();
+  DiskCheck();
+
+  while(1);
+
+
+  if (myLCD.checkSD()) {
+    dLabel(&myLCD, 0, 0, 60, 40, "SD card",   myLCD.setColour(0x00, 0xff, 0x00), 0x0000, 0, 0, 9);
+
+    if (myLCD.checkRAW()) dLabel(&myLCD, 0, 40, 60, 40, "RAW",   myLCD.setColour(0x00, 0xff, 0x00), 0x0000, 0, 0, 9);
+    else dLabel(&myLCD, 0, 40, 60, 40, "FAT",  myLCD.setColour(0x00, 0x00, 0xff), 0x0000, 0, 0, 9);
+  } 
+  else {
+    dLabel(&myLCD, 0, 0, 60, 40, "no SD",   myLCD.setColour(0xff, 0x00, 0x00), 0x0000, 0, 0, 9);
+  }
+
+  myLCD.setOrientation(0x03);
+  myLCD.setPenSolid(true);
+  myLCD.setFontSolid(true);
+
+  myLCD.setFont(0);
+  myLCD.gText( 0, 210, 0xffff, myLCD.WhoAmI());
+
+  myButton.dDefine(&myLCD, myLCD.maxX()-80, myLCD.maxY()-50, 80, 50, setItem(0, "Stop"), myLCD.rgb16(0xff, 0xff, 0xff), myLCD.rgb16(0xff, 0x00, 0x00));
+  myLCD.setTouch(true);
+
+  Serial.print("\n");
+}
+
+uint8_t c;
+uint16_t result;
+boolean b=true;
+
+void loop() {
+
+
+  if (myLCD.getTouchActivity()>0) {
+    myLCD.getTouchXY(x, y);
+    myLCD.setFont(0);
+    myLCD.gText(200, 0, 0xffff, ftoa(x, 0, 5)); 
+    myLCD.gText(200, 15, 0xffff, ftoa(y, 0, 5)); 
+
+    // quit
+    if (myButton.check()) {
+      myLCD.off();
+      while(true);
+    }
+  }
+
+  myLCD.setFont(0);
+  myLCD.setFontSolid(true);
+  myLCD.gText( 250, 225, 0xffff, String(millis()-l));
+  l=millis();
+
+}
+
+
+
+
+
+
+
+
+
+
+

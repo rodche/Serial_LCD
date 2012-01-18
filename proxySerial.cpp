@@ -67,13 +67,24 @@ String ftoa(float number, byte precision, byte size) {
     s += String(frac,DEC) ;  // prints the fractional part
   }
 
-  if (size>0)                // checks size
-    if (s.length()>size)        return("#");
-    else while(s.length()<size) s = " "+s;
+  if ( (size>0) & (s.length()>size) )  return("#");
+  while( s.length()<size ) s = " "+s;
 
   return s;
 }
 
+
+String htoa(uint32_t number, byte size) {
+  String s = "";
+  while ( number>0 ) {
+    s = String("0123456789abcdef")[number%16] + s;
+    number = number>>4;
+  }
+  if ( (size>0) && (s.length()>size) )  return("#");
+
+  while ( s.length()<size )  s = "0"+s;
+  return s;
+}
 
 // Object
 
@@ -155,6 +166,10 @@ void ProxySerial::flush() {
   _checkSpeed();  
   _proxyPort->flush(); 
 }
+
+
+
+
 
 
 

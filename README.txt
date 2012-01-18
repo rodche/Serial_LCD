@@ -32,6 +32,7 @@ Dec 29, 2011 release 21 - readTextFile from sebgiroux
 Jan 05, 2012 release 22 - RAW for screen copy to/read from SD
 Jan 11, 2012 release 23 - VGA support and library release number check, updated examples
 Jan 14, 2012 release 24 - Goldelox support with 8-bits coordinates 
+Jan 16, 2012 release 25 - RAW partition automatic detection
 
 
 * Tutorial

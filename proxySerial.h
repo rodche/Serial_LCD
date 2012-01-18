@@ -17,7 +17,7 @@
 // http://www.4d-Labs.com
 //
 //
-#define PROXYSERIAL_RELEASE 24
+#define PROXYSERIAL_RELEASE 25
 
 #include "WProgram.h"
 #include "Stream.h"
@@ -29,7 +29,8 @@
 
 // Utilities
 
-String ftoa(float number, byte precision, byte size);
+String ftoa(float number, byte precision=0, byte size=0);
+String htoa(uint32_t number, byte size=0);
 
 
 // Objects

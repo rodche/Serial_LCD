@@ -2,7 +2,7 @@
 // μLCD-32PT(SGC) 3.2” Serial LCD Display Module
 // Arduino & chipKIT Library
 //
-// Jan 14, 2012 release 24 - see README.txt
+// Jan 16, 2012 release 25 - see README.txt
 // © Rei VILO, 2010-2012
 // CC = BY NC SA
 // http://sites.google.com/site/vilorei/
@@ -17,7 +17,7 @@
 // http://www.4d-Labs.com
 //
 //
-#define SERIAL_LCD_RELEASE 24
+#define SERIAL_LCD_RELEASE 25
 
 #ifndef Serial_LCD_h
 #define Serial_LCD_h
@@ -26,8 +26,8 @@
 #include "proxySerial.h"
 
 // Test release
-#if PROXYSERIAL_RELEASE < 24
-#error required PROXYSERIAL_RELEASE 24
+#if PROXYSERIAL_RELEASE < 25
+#error required PROXYSERIAL_RELEASE 25
 #endif
 
 // Objects
@@ -53,6 +53,9 @@ public:
   uint8_t setVolume(uint8_t percent); // Set Volume - 76hex 
   uint8_t protectFAT(boolean b);  // Display Control Functions – 59hex
   uint8_t checkScreenType();
+  uint8_t checkHardwareVersion();
+  uint8_t checkSoftwareVersion();
+
   // Sleep – 5Ahex 
   // Read GPIO Pin - 61hex
   // Write GPIO Pin - 69hex 
@@ -109,8 +112,7 @@ public:
   uint8_t saveScreenRAW(uint32_t sector);   // Screen Copy-Save to Card (RAW) - @43hex
   uint8_t dSaveScreenRAW(uint32_t sector, uint16_t x0, uint16_t y0, uint16_t dx, uint16_t dy);  // x0, y0 and width and height  
   uint8_t saveScreenRAW(uint32_t sector, uint16_t x1, uint16_t y1, uint16_t x2, uint16_t y2);  // x1, y1 x2, y2: same coordinates as rectangle
-  uint8_t readScreenRAW(uint32_t sector);   // Display Object from Card (RAW) - @4Fhex     
-  uint8_t readScreenRAW(uint32_t sector, uint16_t x1, uint16_t y1); // x1, y1: left-top coordinates
+  uint8_t readScreenRAW(uint32_t sector, uint16_t x1=0, uint16_t y1=0); // x1, y1: left-top coordinates
   uint32_t getSectors(uint16_t x, uint16_t y, uint16_t sizeSector=512); // sector = 512
   // Display Video-Animation Clip from Card (RAW) - @56hex 
   // Run Script (4DSL) Program from Card (RAW) - @50hex
@@ -131,8 +133,7 @@ public:
   uint8_t saveScreenFAT(String filename);   // Screen Copy-Save to Card (FAT) - @63hex 
   uint8_t dSaveScreenFAT(String filename, uint16_t x0, uint16_t y0, uint16_t dx, uint16_t dy);  // x0, y0 and width and height  
   uint8_t saveScreenFAT(String filename, uint16_t x1, uint16_t y1, uint16_t x2, uint16_t y2);  // x1, y1 x2, y2: same coordinates as rectangle
-  uint8_t readScreenFAT(String filename);   // Display Image-Icon from Card (FAT) - @6Dhex     
-  uint8_t readScreenFAT(String filename, uint16_t x1, uint16_t y1); // x1, y1: left-top coordinates
+  uint8_t readScreenFAT(String filename, uint16_t x1=0, uint16_t y1=0); // x1, y1: left-top coordinates
   uint8_t playSoundSD(String filename, uint8_t option0=0);  // Play Audio WAV file from Card (FAT) - @6Chex 
   // Run Script (4DSL) Program from Card (FAT) - @70hex
 
@@ -154,6 +155,8 @@ private:
   ProxySerial * _port;
 
   uint8_t _checkedScreenType;
+  uint8_t _checkedHardwareVersion;
+  uint8_t _checkedSoftwareVersion;
   boolean _checkedSD;
   boolean _checkedRAW;
   boolean _serialSoftFlag;
@@ -167,6 +170,7 @@ private:
 
 
 #endif
+
 
 
 

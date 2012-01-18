@@ -17,14 +17,14 @@
 // http://www.4d-Labs.com
 //
 //
-#define GUI_RELEASE 24
+#define GUI_RELEASE 25
 
 #include "WProgram.h"
 #include "Serial_LCD.h"
 
 // Test release
-#if SERIAL_LCD_RELEASE < 24
-#error required SERIAL_LCD_RELEASE 24
+#if SERIAL_LCD_RELEASE < 25
+#error required SERIAL_LCD_RELEASE 25
 #endif
 
 #ifndef GUI_h
