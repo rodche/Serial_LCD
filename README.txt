@@ -33,6 +33,8 @@ Jan 05, 2012 release 22 - RAW for screen copy to/read from SD
 Jan 11, 2012 release 23 - VGA support and library release number check, updated examples
 Jan 14, 2012 release 24 - Goldelox support with 8-bits coordinates 
 Jan 16, 2012 release 25 - RAW partition automatic detection
+Jan 20, 2012 release 26 - Self-generated screen parameters with example Info_main
+Jan 22, 2012 release 27 - Graphics library with example Graphics_main
 
 
 * Tutorial

@@ -2,6 +2,8 @@ Serial_LCD	KEYWORD1
 ProxySerial	KEYWORD1
 button	KEYWORD1
 item	KEYWORD1
+gClock	KEYWORD1
+gDirection	KEYWORD1
 
 WhoAmI	KEYWORD2
 begin	KEYWORD2
@@ -90,6 +92,8 @@ menu	KEYWORD2
 setResolutionVGA	KEYWORD2
 checkScreenType	KEYWORD2
 replaceBackGroundColour	KEYWORD2
+checkHardwareVersion	KEYWORD2
+checkSoftwareVersion	KEYWORD2
 
 _lcd_nss	LITERAL1
 _font	LITERAL1

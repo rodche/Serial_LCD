@@ -2,7 +2,7 @@
 // μLCD-32PT(SGC) 3.2” Serial LCD Display Module
 // Arduino & chipKIT Library
 //
-// Jan 16, 2012 release 25 - see README.txt
+// Jan 22, 2012 release 27 - see README.txt
 // © Rei VILO, 2010-2012
 // CC = BY NC SA
 // http://sites.google.com/site/vilorei/
@@ -26,7 +26,7 @@
 // Constructor
 Serial_LCD::Serial_LCD(ProxySerial * port0) {
   _port=port0;
-}
+};
 
 
 // Interface

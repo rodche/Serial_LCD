@@ -25,8 +25,8 @@
 #include "proxySerial.h"
 
 // test release
-#if GUI_RELEASE < 25
-#error required GUI_RELEASE 25
+#if GUI_RELEASE < 26
+#error required GUI_RELEASE 26
 #endif
 
 // === Serial port choice ===
