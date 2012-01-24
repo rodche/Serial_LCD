@@ -2,7 +2,7 @@
 // μLCD-32PT(SGC) 3.2” Serial LCD Display Module
 // Arduino & chipKIT Library
 //
-// Jan 22, 2012 release 27 - see README.txt
+// Jan 24, 2012 release 28 - see README.txt
 // © Rei VILO, 2010-2012
 // CC = BY NC SA
 // http://sites.google.com/site/vilorei/
@@ -37,7 +37,7 @@ public:
   Serial_LCD(ProxySerial * port0); // uint8_t receivePin, uint8_t transmitPin); // constructor
 
   // 2.1 General Commands
-  void begin(); // AutoBaud – 55hex 
+  void begin(uint8_t resetPin0=0); // AutoBaud – 55hex 
   uint8_t setSpeed(uint16_t speed); // Set new Baud-Rate - 51hex 
   String WhoAmI(); // Version-Device Info Request – 56hex 
   uint8_t replaceBackGroundColour(uint16_t colour);  // Replace Background Colour – 42hex 
@@ -153,6 +153,7 @@ public:
 private:
   ProxySerial * _port;
 
+  uint8_t _resetPin;
   uint8_t _checkedScreenType;
   uint8_t _checkedHardwareVersion;
   uint8_t _checkedSoftwareVersion;

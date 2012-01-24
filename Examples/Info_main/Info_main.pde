@@ -25,8 +25,8 @@
 #include "proxySerial.h"
 
 // test release
-#if GUI_RELEASE < 26
-#error required GUI_RELEASE 26
+#if GUI_RELEASE < 27
+#error required GUI_RELEASE 27
 #endif
 
 // === Serial port choice ===
@@ -65,15 +65,24 @@ uint32_t l;
 
 
 void show() {
-    switch (myLCD.checkScreenType()) {
+  Serial.print("\n");
+  Serial.print(myLCD.WhoAmI());
+  Serial.print("\n");
+
+
+  Serial.print("\n checkScreenType \t");
+  switch (myLCD.checkScreenType()) {
   case 0:
-    dLabel(&myLCD, 0, 0, myLCD.maxX(), 40, "8-bits uLED", 0xffff, 0x0000, 0, 0, 9);
+    dLabel(&myLCD, 0, 0, myLCD.maxX(), 40, "8-bits uOLED", 0xffff, 0x0000, 0, 0, 9);
+    Serial.print("8-bits uLED");
     break;
   case 1:
     dLabel(&myLCD, 0, 0, myLCD.maxX(), 40, "16-bits uLCD", 0xffff, 0x0000, 0, 0, 9);
+    Serial.print("16-bits uLCD");
     break;
   case 2:
     dLabel(&myLCD, 0, 0, myLCD.maxX(), 40, "16-bits uVGA", 0xffff, 0x0000, 0, 0, 9);
+    Serial.print("16-bits uVGA");
     break;
   default:
     dLabel(&myLCD, 0, 0, myLCD.maxX(), 40, "Unknown", 0xffff, 0x0000, 0, 0, 9);
@@ -81,29 +90,57 @@ void show() {
 
   dLabel(&myLCD, 0, 40, myLCD.maxX()/2, 40, "Hardware: " + htoa(myLCD.checkHardwareVersion(), 2), 0xffff, myLCD.setColour(0x7f, 0x7f, 0x00), 0, 0, 9);
   dLabel(&myLCD, myLCD.maxX()/2, 40, myLCD.maxX()/2, 40, "Software: " + htoa(myLCD.checkSoftwareVersion(), 2), 0xffff, myLCD.setColour(0x7f, 0x7f, 0x00), 0, 0, 9);
+  Serial.print("\n checkHardwareVersion \t");
+  Serial.print(htoa(myLCD.checkHardwareVersion(), 2));
+  Serial.print("\n checkSoftwareVersion \t");
+  Serial.print(htoa(myLCD.checkSoftwareVersion(), 2));
 
   dLabel(&myLCD, 0, 80, myLCD.maxX()/2, 40, "max X:" + ftoa(myLCD.maxX(), 0, 5), 0xffff, myLCD.setColour(0x7f, 0x7f, 0x7f), 0, 0, 9);
   dLabel(&myLCD, myLCD.maxX()/2, 80, myLCD.maxX()/2, 40, "max Y:" + ftoa(myLCD.maxY(), 0, 5), 0xffff, myLCD.setColour(0x7f, 0x7f, 0x7f), 0, 0, 9);
+  Serial.print("\n maxX \t");
+  Serial.print(ftoa(myLCD.maxX(), 0, 5));
+  Serial.print("\n maxY \t");
+  Serial.print(ftoa(myLCD.maxY(), 0, 5));
 
   myLCD.initSD();
+  Serial.print("\n checkSD \t");
 
   if (myLCD.checkSD()) {
     dLabel(&myLCD, 0, 120, myLCD.maxX()/2, 40, "SD card", 0xffff, myLCD.setColour(0x00, 0x7f, 0x00), 0, 0, 9);
+    Serial.print("\n checkRAW \t");
 
-    if (myLCD.checkRAW()) dLabel(&myLCD, myLCD.maxX()/2, 120, myLCD.maxX()/2, 40, "FAT + RAW",   0xffff, myLCD.setColour(0x00, 0x00, 0x7f), 0, 0, 9);
-    else dLabel(&myLCD, myLCD.maxX()/2, 120, myLCD.maxX()/2, 40, "FAT only",  0xffff, myLCD.setColour(0x00, 0x00, 0x7f), 0, 0, 9);
-  } 
+    if (myLCD.checkRAW()) {
+      dLabel(&myLCD, myLCD.maxX()/2, 120, myLCD.maxX()/2, 40, "FAT + RAW",   0xffff, myLCD.setColour(0x00, 0x00, 0x7f), 0, 0, 9);
+      Serial.print("FAT + RAW");
+    } 
+    else {
+      dLabel(&myLCD, myLCD.maxX()/2, 120, myLCD.maxX()/2, 40, "FAT only",  0xffff, myLCD.setColour(0x00, 0x00, 0x7f), 0, 0, 9);
+      Serial.print("FAT only");
+    } 
+  }
   else {
     dLabel(&myLCD, 0, 120, myLCD.maxX()/2, 40, "no SD card",   0xffff, myLCD.setColour(0x7f, 0x00, 0x00), 0, 0, 9);
+    Serial.print("no SD card");
   }
 
-  myRotate.dDefine(&myLCD, 0, myLCD.maxY()-50, 80, 50, setItem(0, "Rotate"), myLCD.rgb16(0xff, 0xff, 0xff), myLCD.rgb16(0x00, 0xff, 0x00));
-  myRotate.enable(true);
-  myRotate.draw();
+  Serial.print("\n getOrientation \t");
+  Serial.print(myLCD.getOrientation(), DEC);
+  Serial.print("\n");
 
-  myButton.dDefine(&myLCD, myLCD.maxX()-80, myLCD.maxY()-50, 80, 50, setItem(0, "Stop"), myLCD.rgb16(0xff, 0xff, 0xff), myLCD.rgb16(0xff, 0x00, 0x00));
-  myButton.enable(true);
-  myButton.draw();
+
+  Serial.print("\n checkScreenType==1 \t");
+  Serial.print((myLCD.checkScreenType()==1), DEC);
+  Serial.print("\n");
+
+  if (myLCD.checkScreenType()==1) {
+    myRotate.dDefine(&myLCD, 0, myLCD.maxY()-50, 80, 50, setItem(0, "Rotate"), myLCD.rgb16(0xff, 0xff, 0xff), myLCD.rgb16(0x00, 0xff, 0x00));
+    myRotate.enable(true);
+    myRotate.draw();
+
+    myButton.dDefine(&myLCD, myLCD.maxX()-80, myLCD.maxY()-50, 80, 50, setItem(0, "Stop"), myLCD.rgb16(0xff, 0xff, 0xff), myLCD.rgb16(0xff, 0x00, 0x00));
+    myButton.enable(true);
+    myButton.draw();
+  }
 }
 
 
@@ -128,10 +165,11 @@ void setup() {
 #endif 
   // === End of Serial port initialisation ===
 
-  myLCD.begin();  // 9600 at start-up
+  myLCD.begin(4);  // 9600 at start-up
   myLCD.setOrientation(0x03);
-  myLCD.setTouch(true);
-
+  if (myLCD.checkScreenType()==1) {
+    myLCD.setTouch(true);
+  }
   show();
 }
 
@@ -140,20 +178,25 @@ uint16_t result;
 boolean b=true;
 
 void loop() {
-  if (myLCD.getTouchActivity()>0) {
-    if (myRotate.check()) {
-      myLCD.clear();
-      myLCD.setOrientation(myLCD.getOrientation() %4 +1);
-      show();
-    } 
-    else if (myButton.check()) {
-      myLCD.off();
-      while(true);
+  if (myLCD.checkScreenType()==1) {
+    if (myLCD.getTouchActivity()>0) {
+      if (myRotate.check()) {
+        myLCD.clear();
+        myLCD.setOrientation(myLCD.getOrientation() %4 +1);
+        show();
+      } 
+      else if (myButton.check()) {
+        myLCD.off();
+        while(true);
+      }
     }
-  }
+  } 
 
   delay(250);
 }
+
+
+
 
 
 

@@ -2,7 +2,7 @@
 // μLCD-32PT(SGC) 3.2” Serial LCD Display Module
 // Arduino & chipKIT Library
 //
-// Jan 22, 2012 release 27 - see README.txt
+// Jan 24, 2012 release 28 - see README.txt
 // © Rei VILO, 2010-2012
 // CC = BY NC SA
 // http://sites.google.com/site/vilorei/
@@ -32,21 +32,34 @@ Serial_LCD::Serial_LCD(ProxySerial * port0) {
 // Interface
 // 2.1 General Commands
 // AutoBaud – 55hex 
-void Serial_LCD::begin() {
+void Serial_LCD::begin(uint8_t resetPin0) {
   // default speed = 9600
+
+    _resetPin = resetPin0;
+
+  // reset is required for Goldelox-based screens
+  if (_resetPin>0) {
+    delay(3000);
+    pinMode(_resetPin, OUTPUT);     
+    digitalWrite(_resetPin, LOW);
+    delay(10);
+    digitalWrite(_resetPin, HIGH);
+    delay(10);
+    _port->flush();
+  }
 
   // LCD 500 ms power-up
   // SD card 3000 ms power-up
-  delay(500);
+  delay(3000);
   _port->print('U');    // connect
   while (_port->read()!=0x06)  {     
-    delay(100);  
+    delay(10);  
   }
 
   _port->print('o');    // clear touch 
   _port->print((char)0x04);   // touch state
   //  _port->flush();
-  delay(100);
+  delay(10);
   while (_port->available()) _port->read();
 
   setBacklight(true);  // backlight on
@@ -99,7 +112,7 @@ uint8_t Serial_LCD::setSpeed(uint16_t speed) {
 }
 
 
-uint16_t _size(uint8_t ui) {
+uint16_t _size(uint8_t ui, uint8_t answer) {
   switch (ui) {
   case 0x22 :     
     return 220;
@@ -117,17 +130,16 @@ uint16_t _size(uint8_t ui) {
     return 320;
   case 0x24 :     
     return 240;
-  case 0x48 :     
-    return 480;  // assumed, to be checked
-  case 0x27 :     
-    return 272;  // assumed, to be checked
+  case 0xff :     
+    if (answer==3) return 480;  // assumed, to be checked
+    if (answer==4) return 272;  // assumed, to be checked
   default   :     
     return 0;
   }
 }
 
 String Serial_LCD::WhoAmI() {  
-  String s="Serial uLCD-32PT ";
+  String s="Serial 4D Systems screen ";
   _port->print('V');
   _port->print((char)0x00);
   delay(10);
@@ -145,8 +157,8 @@ String Serial_LCD::WhoAmI() {
     }
     if ( i==1 )  _checkedHardwareVersion = c;
     if ( i==2 )  _checkedSoftwareVersion = c;
-    if ( i==3 )  _maxX = _size(c); // standard
-    if ( i==4 )  _maxY = _size(c); // standard
+    if ( i==3 )  _maxX = _size(c, 3); // standard
+    if ( i==4 )  _maxY = _size(c, 4); // standard
 
     i++;
   }
@@ -178,7 +190,7 @@ void Serial_LCD::off() {
 
 
 uint8_t Serial_LCD::setBacklight(boolean b) {
-  if (_checkedScreenType==2) return 0x15;   // except VGA 
+  if (_checkedScreenType!=1) return 0x15;   // only uLCD 
 
   _port->print('Y');
   _port->print((char)0x00);
@@ -187,7 +199,7 @@ uint8_t Serial_LCD::setBacklight(boolean b) {
 }   
 
 uint8_t Serial_LCD::setDisplay(boolean b) {
-  if (_checkedScreenType==2) return 0x15;   // except VGA 
+  if (_checkedScreenType==2) return 0x15;   // exclude VGA 
 
   _port->print('Y');
   _port->print((char)0x01);
@@ -196,7 +208,7 @@ uint8_t Serial_LCD::setDisplay(boolean b) {
 }
 
 uint8_t Serial_LCD::setContrast(uint8_t b) {
-  if (_checkedScreenType==2) return 0x15;   // except VGA 
+  if (_checkedScreenType==2) return 0x15;   // exclude VGA 
 
   if (b<=0x0f) {
     _port->print('Y');
@@ -212,7 +224,7 @@ uint8_t Serial_LCD::setContrast(uint8_t b) {
 
 
 uint8_t Serial_LCD::setOrientation(uint8_t b) {   // Display Control Functions – 59hex
-  if (_checkedScreenType==2) return 0x15;   // except VGA 
+  if (_checkedScreenType!=1) return 0x15;   // exclude VGA 
 
   _orientation = b;
   _port->print('Y');
@@ -227,7 +239,7 @@ uint8_t Serial_LCD::getOrientation() {
 } 
 
 uint8_t Serial_LCD::setTouch(boolean b) {
-  if (_checkedScreenType==2) return 0x15;   // except VGA 
+  if (_checkedScreenType!=1) return 0x15;   // only uLCD 
 
   if (b) {
     _port->print('Y');
@@ -492,7 +504,7 @@ uint8_t Serial_LCD::gText(uint16_t x, uint16_t y, uint16_t colour, String s) {
 //     2 : Touch Release 
 //     3 : Touch Moving
 uint8_t Serial_LCD::getTouchActivity() {
-  if (_checkedScreenType==2) return 0x15;   // except VGA 
+  if (_checkedScreenType!=1) return 0x15;   // only uLCD 
 
   _port->print('o');
   _port->print((char)0x04);   // state
@@ -517,7 +529,7 @@ uint8_t Serial_LCD::getTouchActivity() {
 }
 
 uint8_t Serial_LCD::getTouchXY(uint16_t &x, uint16_t &y) {
-  if (_checkedScreenType==2) return 0x15;   // except VGA 
+  if (_checkedScreenType!=1) return 0x15;   // only uLCD 
 
   _port->print('o');
   _port->print((char)0x05);   // coordinates
@@ -546,7 +558,7 @@ uint8_t Serial_LCD::dDetectTouchRegion(uint16_t x0, uint16_t y0, uint16_t dx, ui
 
 // filters only events 1=press and 3=move
 uint8_t Serial_LCD::detectTouchRegion(uint16_t x1, uint16_t y1, uint16_t x2, uint16_t y2) {
-  if (_checkedScreenType==2) return 0x15;   // except VGA 
+  if (_checkedScreenType!=1) return 0x15;   // only uLCD 
 
   _port->print('u');
   _port->printXY(x1);
@@ -611,6 +623,8 @@ void Serial_LCD::setRAW(boolean b) {
 }
 
 uint8_t Serial_LCD::protectFAT(boolean b) {
+  if (_checkedScreenType==0) return 0x15;   // exclude uOLED  
+
   _port->print('Y');
   _port->print((char)0x08);
   _port->print((b) ? (char)0x01 : (char)0x00);
@@ -671,6 +685,7 @@ uint8_t Serial_LCD::dSaveScreenRAW(uint32_t sector, uint16_t x0, uint16_t y0, ui
 // x1, y1: left-top coordinates
 // no coordinates: 0, 0 for full screen
 uint8_t Serial_LCD::readScreenRAW(uint32_t sector, uint16_t x1, uint16_t y1) {
+  if (_checkedScreenType==0) return 0x15;   //  exclude uOLED
   if ( !_checkedSD ) return 0x15;
 
   // RAW image new format
@@ -996,6 +1011,8 @@ void Serial_LCD::_swap(uint16_t &a, uint16_t &b) {
   a=b;
   b=w;
 }
+
+
 
 
 

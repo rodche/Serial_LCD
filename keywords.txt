@@ -92,8 +92,8 @@ menu	KEYWORD2
 setResolutionVGA	KEYWORD2
 checkScreenType	KEYWORD2
 replaceBackGroundColour	KEYWORD2
-checkHardwareVersion	KEYWORD2
 checkSoftwareVersion	KEYWORD2
+checkHardwareVersion	KEYWORD2
 
 _lcd_nss	LITERAL1
 _font	LITERAL1

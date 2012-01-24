@@ -33,8 +33,9 @@ Jan 05, 2012 release 22 - RAW for screen copy to/read from SD
 Jan 11, 2012 release 23 - VGA support and library release number check, updated examples
 Jan 14, 2012 release 24 - Goldelox support with 8-bits coordinates 
 Jan 16, 2012 release 25 - RAW partition automatic detection
-Jan 20, 2012 release 26 - Self-generated screen parameters with example Info_main
+Jan 20, 2012 release 26 - self-generated screen parameters with example Info_main
 Jan 22, 2012 release 27 - Graphics library with example Graphics_main
+Jan 24, 2012 release 28 - uOLED 1.6" and uLCD 4.3" compatibility test successful
 
 
 * Tutorial
@@ -46,6 +47,7 @@ http:sites.google.com/site/vilorei/arduino/13--serial-touch-320x240-lcd-screen
 . Arduino IDE 0023
 . NewSoftSerial release 11 beta
 http://arduiniana.org/2011/01/newsoftserial-11-beta/
+. for Goldelox screens, hardware reset recommended with reset pin # (active low) be declared in myLCD.begin( # )
 
 
 * Bugs & ToDos
