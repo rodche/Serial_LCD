@@ -2,7 +2,7 @@
 // μLCD-32PT(SGC) 3.2” Serial LCD Display Module
 // Arduino & chipKIT Library
 //
-// Jan 24, 2012 release 28 - see README.txt
+// Jan 25, 2012 release 29 - see README.txt
 // © Rei VILO, 2010-2012
 // CC = BY NC SA
 // http://sites.google.com/site/vilorei/
@@ -123,7 +123,7 @@ void button::enable(boolean b1) {
     _enable = b1;
 }
 
-boolean button::check() {
+boolean button::check(boolean instant) {
     if (!_enable) return false;
     
     uint16_t x0, y0, z0;
@@ -134,6 +134,8 @@ boolean button::check() {
         
         // pressed
         if ((x0>=_x1) && (x0<=_x2) && (y0>=_y1) && (y0<=_y2)) {
+            if (instant) return true;
+          
             draw(true); 
             
             // debounce

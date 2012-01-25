@@ -36,6 +36,7 @@ Jan 16, 2012 release 25 - RAW partition automatic detection
 Jan 20, 2012 release 26 - self-generated screen parameters with example Info_main
 Jan 22, 2012 release 27 - Graphics library with example Graphics_main
 Jan 24, 2012 release 28 - uOLED 1.6" and uLCD 4.3" compatibility test successful
+Jan 25, 2012 release 29 - button with instant option (no de-bouncing)
 
 
 * Tutorial

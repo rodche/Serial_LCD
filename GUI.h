@@ -2,7 +2,7 @@
 // μLCD-32PT(SGC) 3.2” Serial LCD Display Module
 // Arduino & chipKIT Library
 //
-// Jan 24, 2012 release 28 - see README.txt
+// Jan 25, 2012 release 29 - see README.txt
 // © Rei VILO, 2010-2012
 // CC = BY NC SA
 // http://sites.google.com/site/vilorei/
@@ -17,7 +17,7 @@
 // http://www.4d-Labs.com
 //
 //
-#define GUI_RELEASE 27
+#define GUI_RELEASE 29
 
 #include "WProgram.h"
 #include "Serial_LCD.h"
@@ -57,7 +57,7 @@ public:
   boolean state();
   void draw(boolean b1=false);
   void enable(boolean b1); 
-  boolean check();
+  boolean check(boolean instant=false);
   uint16_t getIndex();
 
 private:
