@@ -2,7 +2,9 @@
 // μLCD-32PT(SGC) 3.2” Serial LCD Display Module
 // Arduino & chipKIT Library
 //
-// Jan 24, 2012 release 28 - see README.txt
+// Jan 28, 2012 release 118 
+// see README.txt
+//
 // © Rei VILO, 2010-2012
 // CC = BY NC SA
 // http://sites.google.com/site/vilorei/
@@ -53,25 +55,29 @@ void Serial_LCD::begin(uint8_t resetPin0) {
   delay(3000);
   _port->print('U');    // connect
   while (_port->read()!=0x06)  {     
-    delay(10);  
+    delay(100);  
   }
 
   _port->print('o');    // clear touch 
   _port->print((char)0x04);   // touch state
   //  _port->flush();
-  delay(10);
+  delay(100);
   while (_port->available()) _port->read();
 
-  setBacklight(true);  // backlight on
-  setDisplay(true);  // display on
-  setOrientation(3);
-  clear();
-  setFont(1);
-  _checkedSD = false;  // SD not checked
+  setDisplay(true);    // display on
+  delay(100);
 
   // screen size based on orientation
   // screen type
+  _checkedSD = false;  // SD not checked
   WhoAmI();
+
+  // screen type required for setBacklight and following parameters 
+  setBacklight(true);  // backlight on
+  setOrientation(3);
+  
+  clear();
+  setFont(1);
 }
 
 
@@ -139,7 +145,7 @@ uint16_t _size(uint8_t ui, uint8_t answer) {
 }
 
 String Serial_LCD::WhoAmI() {  
-  String s="Serial 4D Systems screen ";
+  String s="Serial 4D Labs screen ";
   _port->print('V');
   _port->print((char)0x00);
   delay(10);
@@ -173,14 +179,12 @@ uint8_t Serial_LCD::clear() {
 
 void Serial_LCD::off() {
   clear();
-
-  clear();
   //  _port->print('o');
   //  _port->print((char)0x04);   // state
   //  _port->flush();
 
   setBacklight(false); // backlight off
-  setDisplay(false);  // display off
+  setDisplay(false);   // display off
 
   while (_port->available()) _port->read();
   _port->print('Q');    // reset to default speed
@@ -359,6 +363,23 @@ uint16_t Serial_LCD::readPixel(uint16_t x1, uint16_t y1) {
   c = _port->read() << 8;
   c += _port->read();
   return c;
+}
+
+
+uint8_t Serial_LCD::copyPaste(uint16_t xs, uint16_t ys, uint16_t xt, uint16_t yt, uint16_t dx, uint16_t dy) {
+  if ( (xt+dx>maxX()) || (yt+dy>maxY()) ) return 0x15;
+
+
+  _port->print('c');
+
+  _port->printXY(xs);
+  _port->printXY(ys);
+  _port->printXY(xt);
+  _port->printXY(yt);
+  _port->printXY(dx);
+  _port->printXY(dy);
+
+  return nacAck();
 }
 
 
@@ -994,6 +1015,11 @@ uint16_t Serial_LCD::halfColour(uint16_t rgb) {
 
 }
 
+uint16_t Serial_LCD::reverseColour(uint16_t rgb) {
+  // rgb16 = red5 green6 blue5 
+  return (uint16_t)(rgb ^ 0xffff);
+}
+
 
 
 uint8_t Serial_LCD::nacAck() {
@@ -1011,37 +1037,5 @@ void Serial_LCD::_swap(uint16_t &a, uint16_t &b) {
   a=b;
   b=w;
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 

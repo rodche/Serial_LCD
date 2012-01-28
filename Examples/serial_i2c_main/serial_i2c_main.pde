@@ -23,10 +23,9 @@
 #include "GUI.h"
 
 // test release
-#if GUI_RELEASE < 23
-#error required GUI_RELEASE 23
+#if GUI_RELEASE < 108
+#error required GUI_RELEASE 108
 #endif
-
 
 // === Serial port choice
 // --- SoftwareSerial Case - Arduino only
@@ -40,8 +39,19 @@
 // --- i2cSerial Case - Arduino + chipKIT
 #include "Wire.h"
 #include "I2C_Serial.h"
+  // Test release
+  #if I2C_SERIAL_RELEASE < 103
+  #error required I2C_SERIAL_RELEASE 103
+  #endif
+
 I2C_Serial myI2C;
 ProxySerial mySerial(&myI2C);
+
+// Test release
+#if I2C_SERIAL_RELEASE < 103
+#error required I2C_SERIAL_RELEASE 103
+#endif
+
 //
 // ===
 

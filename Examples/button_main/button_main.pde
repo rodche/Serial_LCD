@@ -25,8 +25,8 @@
 #include "GUI.h"
 
 // test release
-#if GUI_RELEASE < 23
-#error required GUI_RELEASE 23
+#if GUI_RELEASE < 108
+#error required GUI_RELEASE 108
 #endif
 
 // Arduino Case : uncomment #include
@@ -70,10 +70,12 @@ void setup() {
 #if defined(__AVR__)
   Serial.print("avr\t");
   Serial.print(__AVR__);
+  nss.begin(9600);
   Serial.print("\n");
 #elif defined(__PIC32MX__) 
   Serial.print("chipKIT\t");
   Serial.print(__PIC32MX__);
+  Serial1.begin(9600);
   Serial.print("\n");
 #endif 
 
@@ -93,7 +95,7 @@ void setup() {
   l=millis();
 
   uint16_t i=9;
-  b7.define(&myLCD,  160, 120, 79, 59, setItem(1, "STOP ALL"), myLCD.setColour(0xff, 0xff, 0xff), myLCD.setColour(0xff, 0x00, 0x00), myLCD.setColour(0x88, 0x00, 0x00), i);
+  b7.dDefine(&myLCD,  100, 100, 79, 59, setItem(1, "STOP"), myLCD.setColour(0xff, 0xff, 0xff), myLCD.setColour(0xff, 0x00, 0x00), myLCD.setColour(0x88, 0x00, 0x00), i);
 
   b7.enable(true);
   b7.draw();
@@ -145,6 +147,7 @@ void loop() {
   myLCD.gText( 250, 225, 0xffff, String(millis()-l));
   l=millis();
 }
+
 
 
 

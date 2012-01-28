@@ -2,7 +2,9 @@
 // μLCD-32PT(SGC) 3.2” Serial LCD Display Module
 // Arduino & chipKIT Library
 //
-// Jan 24, 2012 release 28 - see README.txt
+// Jan 28, 2012 release 119
+// see README.txt
+//
 // © Rei VILO, 2010-2012
 // CC = BY NC SA
 // http://sites.google.com/site/vilorei/
@@ -17,7 +19,7 @@
 // http://www.4d-Labs.com
 //
 //
-#define SERIAL_LCD_RELEASE 27
+#define SERIAL_LCD_RELEASE 119
 
 #ifndef Serial_LCD_h
 #define Serial_LCD_h
@@ -26,9 +28,25 @@
 #include "proxySerial.h"
 
 // Test release
-#if PROXYSERIAL_RELEASE < 27
-#error required PROXYSERIAL_RELEASE 27
+#if PROXYSERIAL_RELEASE < 105
+#error required PROXYSERIAL_RELEASE 105
 #endif
+
+
+// Colours                       Red  Green Blue
+//                               4321054321043210
+const uint16_t blackColour   = 0b0000000000000000;
+const uint16_t whiteColour   = 0b1111111111111111;
+const uint16_t redColour     = 0b1111100000000000;
+const uint16_t greenColour   = 0b0000011111100000;
+const uint16_t blueColour    = 0b0000000000011111;
+const uint16_t yellowColour  = 0b1111111111100000;
+const uint16_t cyanColour    = 0b0000011111111111;
+const uint16_t orangeColour  = 0b1111101111100000;
+const uint16_t magentaColour = 0b1111100000001111;
+const uint16_t violetColour  = 0b0111100000011111;
+const uint16_t grayColour    = 0b0111101111101111;
+
 
 // Objects
 
@@ -77,7 +95,7 @@ public:
   uint8_t ellipse(uint16_t x, uint16_t y, uint16_t rx, uint16_t ry, uint16_t colour); // Draw Ellipse – 65hex 
   uint8_t point(uint16_t x1, uint16_t y1, uint16_t colour);   // Draw Pixel – 50hex 
   uint16_t readPixel(uint16_t x1, uint16_t y1); // Read Pixel – 52hex 
-  // Screen Copy-Paste – 63hex 
+  uint8_t copyPaste(uint16_t xs, uint16_t ys, uint16_t xt, uint16_t yt, uint16_t dx, uint16_t dy); // Screen Copy-Paste – 63hex 
   // Replace colour – 6Bhex 
   uint8_t setPenSolid(boolean  b);    // Set Pen Size 1=solid; 0=wire frame – 70hex
 
@@ -140,6 +158,7 @@ public:
   uint16_t setColour(uint8_t red, uint8_t green, uint8_t blue);
   void splitColour(uint16_t rgb, uint8_t &red, uint8_t &green, uint8_t &blue);
   uint16_t halfColour(uint16_t rgb);
+  uint16_t reverseColour(uint16_t rgb);
 
   uint8_t nacAck(); // 0x06=success
   uint8_t fontX();     

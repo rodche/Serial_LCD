@@ -23,8 +23,8 @@
 #include "Serial_LCD.h"
 
 // test release
-#if SERIAL_LCD_RELEASE < 23
-#error required SERIAL_LCD_RELEASE 23
+#if SERIAL_LCD_RELEASE < 118
+#error required SERIAL_LCD_RELEASE 118
 #endif
 
 // === Serial port choice ===
@@ -36,6 +36,10 @@
 #if defined(__I2C_Serial__)
 #include "Wire.h"
 #include "I2C_Serial.h"
+  // Test release
+  #if I2C_SERIAL_RELEASE < 103
+  #error required I2C_SERIAL_RELEASE 103
+  #endif
 I2C_Serial mySerial(0);
 ProxySerial myPort(&mySerial);
 
