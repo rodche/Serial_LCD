@@ -2,7 +2,7 @@
 // μLCD-32PT(SGC) 3.2” Serial LCD Display Module
 // Arduino & chipKIT Library
 //
-// Jan 28, 2012 release 103 
+// Jan 30, 2012 release 105
 // see README.txt
 //
 // © Rei VILO, 2010-2012
@@ -379,16 +379,37 @@ void gHistogram::draw(float value) {
   _pscreen->gText(_x0+3, _y0+_dy-2-_pscreen->fontY(), _frontColour, ftoa(_valueMin, 1, 0));
 
   // lapse error
-  if (l>_lapse) {
-    _pscreen->setBackGroundColour(_frontColour);
-    _pscreen->gText(_x0+_dx-2-5*_pscreen->fontX(), _y0+_dy-2-_pscreen->fontY(), _backColour, ftoa(l*_gridY/1000.0, 1, 4)+"s");
-    _pscreen->setBackGroundColour(_backColour);
-  } 
+  if (_lapse>0) {
+    if (l>_lapse) {
+      if (_gridY>0) {
+        _pscreen->setBackGroundColour(_frontColour);
+        _pscreen->gText(_x0+_dx-2-7*_pscreen->fontX(), _y0+_dy-2-_pscreen->fontY(), _backColour, ftoa(l*_gridY/1000.0, 1, 6)+"s");
+        _pscreen->setBackGroundColour(_backColour);
+      } 
+      else {
+        _pscreen->setBackGroundColour(_frontColour);
+        _pscreen->gText(_x0+_dx-2-7*_pscreen->fontX(), _y0+_dy-2-_pscreen->fontY(), _backColour, ftoa(l, 0, 5)+"ms");
+        _pscreen->setBackGroundColour(_backColour);
+      } // _gridY
+
+    } 
+    else {
+      if (_gridY>0) {
+        _pscreen->gText(_x0+_dx-2-7*_pscreen->fontX(), _y0+_dy-2-_pscreen->fontY(), _frontColour, ftoa(l*_gridY/1000.0, 1, 6)+"s");
+      } 
+      else {
+        _pscreen->gText(_x0+_dx-2-7*_pscreen->fontX(), _y0+_dy-2-_pscreen->fontY(), _frontColour, ftoa(l, 0, 5)+"ms");
+      } // _gridY
+    } // lapse error
+  }
   else {
-    _pscreen->gText(_x0+_dx-2-5*_pscreen->fontX(), _y0+_dy-2-_pscreen->fontY(), _frontColour, ftoa(l*_gridY/1000.0, 1, 4)+"s");
-  } // lapse error
+    _pscreen->setBackGroundColour(_frontColour);
+    _pscreen->gText(_x0+_dx-2-7*_pscreen->fontX(), _y0+_dy-2-_pscreen->fontY(), _backColour, ftoa(l, 0, 5)+"ms");
+    _pscreen->setBackGroundColour(_backColour);
+  } // end _lapse>0
 
 }
+
 
 
 

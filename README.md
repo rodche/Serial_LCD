@@ -59,9 +59,10 @@ Jan 28, 2012 release 108 - new index
 ## Graphics
 Jan 22, 2012 release 1 - new Graphics library with example Graphics_main
 Jan 25, 2012 release 2 - (x0, y0, dx, fy) functions added to (x1, x2, y1, y2) = (x0, y0, x0+dx, y0+dy)
-Jan 27, 2012 release 3 - histogram graphic with example Histogram_main
+Jan 27, 2012 release 3 - histogram graphic with example Histgram_main
 Jan 28, 2012 release 103 - new index
 Jan 28, 2012 release 104 - default colours for each graphic
+Jan 30, 2012 release 105 - improved consistency
 
 
 ## Tutorial

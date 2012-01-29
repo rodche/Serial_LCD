@@ -24,8 +24,8 @@
 #include "Graphics.h"
 
 // test release
-#if GRAPHICS_RELEASE < 23
-#error required GRAPHICS_RELEASE 23
+#if GRAPHICS_RELEASE < 105
+#error required GRAPHICS_RELEASE 105
 #endif
 
 // === Serial port choice ===
@@ -41,7 +41,7 @@ I2C_Serial mySerial(0);
 ProxySerial myPort(&mySerial);
 
 // --- Arduino SoftwareSerial Case - Arduino only
-#elif defined(__AVR__)
+#elif defined(__AVR__) || defined(__AVR_ATmega328__)
 #include "NewSoftSerial.h"
 NewSoftSerial mySerial(2, 3); // RX, TX
 ProxySerial myPort(&mySerial);
@@ -108,7 +108,7 @@ void setup() {
   myLCD.setPenSolid(true);
   myLCD.setFontSolid(true);
 
-  myHistogram.dDefine(&myLCD, 1, 1, myLCD.maxX()-2, myLCD.maxY()-2, -2.0, 2.0, 100, 8, 4, 50, false, 0x0000, 0xffff, myLCD.setColour(0xff, 0xff, 0x00), myLCD.setColour(0x00, 0x00, 0xff), myLCD.setColour(0x00, 0xff, 0x00), myLCD.setColour(0xff, 0x00, 0x00));
+  myHistogram.dDefine(&myLCD, 1, 1, myLCD.maxX()-2, myLCD.maxY()-2, -2.0, 2.0, 100, 8, 4, 100, false, blackColour, whiteColour, yellowColour, blueColour, greenColour, redColour);
 }
 
 uint32_t s;
@@ -138,6 +138,7 @@ void loop() {
     while (1) delay(100);
   }
 }
+
 
 
 
