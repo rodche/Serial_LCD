@@ -29,6 +29,10 @@
 #error required GUI_RELEASE 23
 #endif
 
+#if PROXYSERIAL_RELEASE < 106
+#error required PROXYSERIAL_RELEASE 106
+#endif
+
 // === Serial port choice ===
 
 // uncomment for I2C serial interface
@@ -92,19 +96,19 @@ void setup() {
 
   Serial.print("begin\n");
 
-  // === Serial port speed change ===
-  myLCD.setSpeed(38400);
-#if defined(__I2C_Serial__)
-  mySerial.begin(38400);
-
-#elif defined(__AVR__)
-  mySerial.begin(38400);
-
-#elif defined(__PIC32MX__) 
-  Serial1.begin(38400);
-
-#endif 
-  // === End of Serial port speed change ===
+//  // === Serial port speed change ===
+//  myLCD.setSpeed(38400);
+//#if defined(__I2C_Serial__)
+//  mySerial.begin(38400);
+//
+//#elif defined(__AVR__)
+//  mySerial.begin(38400);
+//
+//#elif defined(__PIC32MX__) 
+//  Serial1.begin(38400);
+//
+//#endif 
+//  // === End of Serial port speed change ===
 
   myLCD.setOrientation(0x03);
   myLCD.setPenSolid(true);
@@ -120,7 +124,7 @@ void setup() {
   b7.enable(true);
   b7.draw();
 
-  myHistogram.dDefine(&myLCD, 60, 60, 200, 100, -2.0, 2.0, 100, 8, 4, 50, false, 0x0000, 0xffff, myLCD.setColour(0xff, 0xff, 0x00), myLCD.setColour(0x00, 0x00, 0xff), myLCD.setColour(0x00, 0xff, 0x00), myLCD.setColour(0xff, 0x00, 0x00));
+  myHistogram.dDefine(&myLCD, 60, 60, 200, 100, -2.0, 2.0, 100, 8, 4, 50, true, 0x0000, 0xffff, myLCD.setColour(0xff, 0xff, 0x00), myLCD.setColour(0x00, 0x00, 0xff), myLCD.setColour(0x00, 0xff, 0x00), myLCD.setColour(0xff, 0x00, 0x00));
 
 }
 
@@ -165,7 +169,7 @@ void loop() {
 
   myLCD.setFont(0);
   myLCD.setFontSolid(true);
-  myLCD.gText( 250, 225, 0xffff, ftoa(millis()-l, 0, 6));
+  myLCD.gText( 250, 225, 0xffff, ttoa(millis()-l, 0, 6));
   l=millis();
 
   //  delay(100);

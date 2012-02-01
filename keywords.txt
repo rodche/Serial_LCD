@@ -97,6 +97,10 @@ replaceBackGroundColour	KEYWORD2
 checkSoftwareVersion	KEYWORD2
 checkHardwareVersion	KEYWORD2
 copyPaste	KEYWORD2
+ftoa	KEYWORD2
+htoa	KEYWORD2
+ttoa	KEYWORD2
+printXY	KEYWORD2
 
 blackColour	LITERAL1
 whiteColour	LITERAL1
@@ -130,3 +134,23 @@ _checkedRAW	LITERAL2
 _serialSoftFlag	LITERAL2
 _orientation	LITERAL2
 _checkedScreenType	LITERAL2
+_textColour	LITERAL2
+_highColour	LITERAL2
+_lowColour	LITERAL2
+_backColour	LITERAL2
+_frontColour	LITERAL2
+_index	LITERAL2
+_text	LITERAL2
+_enable	LITERAL2
+_radius	LITERAL2
+_x0	LITERAL2
+_y0	LITERAL2
+_x1	LITERAL2
+_y1	LITERAL2
+_x2	LITERAL2
+_y2	LITERAL2
+_dx	LITERAL2
+_dy	LITERAL2
+_resetPin	LITERAL2
+_checkedHardwareVersion	LITERAL2
+_checkedSoftwareVersion	LITERAL2

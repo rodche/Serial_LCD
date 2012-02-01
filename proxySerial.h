@@ -2,7 +2,7 @@
 // μLCD-32PT(SGC) 3.2” Serial LCD Display Module
 // Arduino & chipKIT Library
 //
-// Jan 28, 2012 release 105 
+// Feb 01, 2012 release 106
 // see README.txt
 //
 // © Rei VILO, 2010-2012
@@ -19,7 +19,7 @@
 // http://www.4d-Labs.com
 //
 //
-#define PROXYSERIAL_RELEASE 105
+#define PROXYSERIAL_RELEASE 106
 
 #include "WProgram.h"
 #include "Stream.h"
@@ -33,6 +33,7 @@
 
 String ftoa(float number, byte precision=0, byte size=0);
 String htoa(uint32_t number, byte size=0);
+String ttoa(float number, byte precision=0, byte size=0);
 
 
 // Objects

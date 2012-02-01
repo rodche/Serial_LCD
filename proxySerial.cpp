@@ -2,7 +2,7 @@
 // μLCD-32PT(SGC) 3.2” Serial LCD Display Module
 // Arduino & chipKIT Library
 //
-// Jan 28, 2012 release 103 
+// Feb 01, 2012 release 106
 // see README.txt
 //
 // © Rei VILO, 2010-2012
@@ -75,6 +75,25 @@ String ftoa(float number, byte precision, byte size) {
   return s;
 }
 
+
+String ttoa(float number, byte precision, byte size) {
+  if (number<1000) {
+    // ms
+    return ftoa(number, 0, max(0, size-2)) + "ms";
+  }
+  else if (number<60000.0) {
+    // s = ms/1000
+    return ftoa(number*0.001, precision, max(0, size-1)) + "s";
+  }
+  else if (number<3600000.0) {
+    // mn = ms/1000/60
+    return ftoa(number*0.001/60.0, precision, max(0, size-2)) + "mn";
+  }
+  else {
+    // h = ms/1000/60/60
+    return ftoa(number*0.001/60.0/60.0, precision, max(0, size-1)) + "h";
+  }
+}
 
 String htoa(uint32_t number, byte size) {
   String s = "";
