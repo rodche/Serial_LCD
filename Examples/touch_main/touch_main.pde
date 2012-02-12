@@ -43,7 +43,7 @@ I2C_Serial myI2CSerial;
 ProxySerial mySerial(&myI2CSerial);
 
 // Arduino Case
-#elif defined(__AVR__) 
+#elif defined(__AVR__)  || defined (__AVR_ATmega328P__)  
 #include "NewSoftSerial.h"
 NewSoftSerial nss(2, 3); // RX, TX
 ProxySerial mySerial(&nss);
@@ -70,7 +70,7 @@ void setup() {
   Serial.begin(19200);
   Serial.print("\n\n\n***\n");
 
-  //#if defined(__AVR__)
+  //#if defined(__AVR__)  || defined (__AVR_ATmega328P__) | defined (__AVR_ATmega328P__)
   //  Serial.print("avr\t");
   //  Serial.print(__AVR__);
   //  Serial.print("\n");

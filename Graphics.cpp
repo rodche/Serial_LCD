@@ -2,7 +2,7 @@
 // μLCD-32PT(SGC) 3.2” Serial LCD Display Module
 // Arduino & chipKIT Library
 //
-// Feb 01, 2012 release 106
+// Feb 04, 2012 release 107
 // see README.txt
 //
 // © Rei VILO, 2010-2012
@@ -31,7 +31,7 @@ gClock::gClock() {
 
 void gClock::dDefine(Serial_LCD * lcd0, uint16_t x0, uint16_t y0, uint16_t dx, uint16_t dy, uint16_t backColour, uint16_t frontColour, uint16_t hourColour, uint16_t minuteColour, uint16_t secondColour) {
   uint16_t radius = min(dx, dy)/2;
-  define(lcd0, x0-radius, y0-radius, radius-2, backColour, frontColour, hourColour, minuteColour, secondColour);
+  define(lcd0, x0+dx/2, y0+dy/2, radius-2, backColour, frontColour, hourColour, minuteColour, secondColour);
 }
 
 void gClock::define(Serial_LCD * lcd0, uint16_t x0, uint16_t y0, uint16_t radius, uint16_t backColour, uint16_t frontColour, uint16_t hourColour, uint16_t minuteColour, uint16_t secondColour) {
@@ -409,15 +409,195 @@ void gHistogram::draw(float value) {
   } // end _lapse>0
 
 }
+// end gHistogram
 
 
 
 
+gGauge::gGauge() {
+  ;
+}
+
+void gGauge::dDefine(Serial_LCD * lcd0, uint16_t x0, uint16_t y0, uint16_t dx, uint16_t dy, float valueMin, float valueMax, uint16_t memory, uint16_t grid, uint16_t backColour, uint16_t frontColour, uint16_t gridColour, uint16_t valueColour, uint16_t minColour, uint16_t maxColour) {
+  uint16_t radius = min(dx, dy)/2;
+  define(lcd0, x0+dx/2, y0+dy/2, radius-2, valueMin, valueMax, memory, grid, backColour, frontColour, gridColour, valueColour, minColour, maxColour);
+}
+
+void gGauge::define(Serial_LCD * lcd0, uint16_t x0, uint16_t y0, uint16_t radius, float valueMin, float valueMax, uint16_t memory, uint16_t grid, uint16_t backColour, uint16_t frontColour, uint16_t gridColour, uint16_t valueColour, uint16_t minColour, uint16_t maxColour) {
+  _pscreen = lcd0;
+
+  _x0 = x0; 
+  _y0 = y0; 
+  _radius = radius;
+  _oldZ = 0.0;
+
+  _backColour  = backColour;
+  _frontColour = frontColour;
+  _gridColour  = gridColour;
+  _valueColour = valueColour;
+  _minColour   = minColour;
+  _maxColour   = maxColour;
+
+  _valueMin  = valueMin;
+  _valueMax  = valueMax;
+  _memory    = memory; 
+  _grid      = grid;
+
+  _pscreen->setPenSolid(true);
+  _pscreen->circle(_x0, _y0, _radius, _backColour); 
+
+  _pscreen->setPenSolid(false);
+  _pscreen->circle(_x0, _y0, _radius, _gridColour); 
+
+  _n   = 0; // number of values shown
+  _min = 0; // y coordinate of min for memory
+  _max = 0; // y coordinate of max for memory
+  _amnesiaMin=0;
+  _amnesiaMax=0;
+
+  _pscreen->setPenSolid(false);
+  if (_grid>0) for (uint16_t i=0; i<=_grid; i++) {
+    _pscreen->circle(_x0-(_radius-2)*cos( (7.0+6.0*i/_grid)*PI/4.0 ), _y0-(_radius-2)*sin( (7.0+6.0*i/_grid)*PI/4.0 ), 2, _gridColour); 
+  }
+}
 
 
+void gGauge::draw(float value, String sValue) {
 
+  float z = ( 7.0+6.0*(value-_valueMin)/(_valueMax-_valueMin) )*PI/4.0;
+  if ( z<PI* 7.0/4.0 )   z = PI* 7.0/4.0;
+  if ( z>PI*13.0/4.0 )   z = PI*13.0/4.0;
+  float k = min(_radius*0.8, _radius-8-3);
+  float l = 0;
+  uint16_t vX  = _x0-k*cos(z);
+  uint16_t vY  = _y0-k*sin(z);
+  uint16_t _vX = _x0-k*cos(_oldZ);
+  uint16_t _vY = _y0-k*sin(_oldZ);
 
+  _oldZ = z;
+  if ( (vX==_vX) && (vY==_vY) ) return;
 
+  // value
+  _pscreen->line(_x0-1, _y0-1, vX-1, vY-1, _valueColour);
+  _pscreen->line(_x0-1, _y0,   vX-1, vY,   _valueColour);
+  _pscreen->line(_x0-1, _y0+1, vX-1, vY+1, _valueColour);
+  //    _pscreen->line(_x0,   _y0-1, vX,   vY-1, _valueColour);
+  //    _pscreen->line(_x0,   _y0,   vX,   vY,   _valueColour);
+  //    _pscreen->line(_x0,   _y0+1, vX,   vY+1, _valueColour);
+  _pscreen->line(_x0+1, _y0-1, vX+1, vY-1, _valueColour);
+  _pscreen->line(_x0+1, _y0,   vX+1, vY,   _valueColour);
+  _pscreen->line(_x0+1, _y0+1, vX+1, vY+1, _valueColour);
+
+  _pscreen->line(_x0-1, _y0-1, _vX-1, _vY-1, _backColour);
+  _pscreen->line(_x0-1, _y0,   _vX-1, _vY,   _backColour);
+  _pscreen->line(_x0-1, _y0+1, _vX-1, _vY+1, _backColour);
+  //    _pscreen->line(_x0,   _y0-1, _vX,   _vY-1, _backColour);
+  //    _pscreen->line(_x0,   _y0,   _vX,   _vY,   _backColour);
+  //    _pscreen->line(_x0,   _y0+1, _vX,   _vY+1, _backColour);
+  _pscreen->line(_x0+1, _y0-1, _vX+1, _vY-1, _backColour);
+  _pscreen->line(_x0+1, _y0,   _vX+1, _vY,   _backColour);
+  _pscreen->line(_x0+1, _y0+1, _vX+1, _vY+1, _backColour);
+
+  _pscreen->line(_x0-1, _y0-1, vX-1, vY-1, _valueColour);
+  _pscreen->line(_x0-1, _y0,   vX-1, vY,   _valueColour);
+  _pscreen->line(_x0-1, _y0+1, vX-1, vY+1, _valueColour);
+  //    _pscreen->line(_x0,   _y0-1, vX,   vY-1, _valueColour);
+  //    _pscreen->line(_x0,   _y0,   vX,   vY,   _valueColour);
+  //    _pscreen->line(_x0,   _y0+1, vX,   vY+1, _valueColour);
+  _pscreen->line(_x0+1, _y0-1, vX+1, vY-1, _valueColour);
+  _pscreen->line(_x0+1, _y0,   vX+1, vY,   _valueColour);
+  _pscreen->line(_x0+1, _y0+1, vX+1, vY+1, _valueColour);
+
+  // min and max memory
+  if (_memory>0) {
+    _pscreen->setPenSolid(true);
+    // first time
+    if (_n==0) {
+      _max = z;
+      _min = z;
+      _n++;
+    }
+
+    boolean fMax = false;
+    boolean fMin = false;
+
+    // max - coordinates in normal scale
+    if (z>=_max) {
+      _pscreen->circle(_x0-(_radius-8)*cos(_max), _y0-(_radius-8)*sin(_max), 2, _backColour);
+      _max = z;
+      _amnesiaMax = _memory;
+    } 
+    else if (_amnesiaMax>1) {
+      fMax = true;
+      _amnesiaMax--;
+    } 
+    else {
+      _pscreen->circle(_x0-(_radius-8)*cos(_max), _y0-(_radius-8)*sin(_max), 2, _backColour);
+      _max = z;
+    } // max
+
+    // min - coordinates in normal scale
+    if (z<=_min) {
+      _pscreen->circle(_x0-(_radius-8)*cos(_min), _y0-(_radius-8)*sin(_min), 2, _backColour);
+      _min = z;
+      _amnesiaMin = _memory;
+    } 
+    else if (_amnesiaMin>0) {
+      fMin = true;
+      _amnesiaMin--;
+    } 
+    else {
+      _pscreen->circle(_x0-(_radius-8)*cos(_min), _y0-(_radius-8)*sin(_min), 2, _backColour);
+      _min = z;
+    } // min
+
+    if (fMin)       _pscreen->circle(_x0-(_radius-8)*cos(_min), _y0-(_radius-8)*sin(_min), 2, _minColour);
+    if (fMax)       _pscreen->circle(_x0-(_radius-8)*cos(_max), _y0-(_radius-8)*sin(_max), 2, _maxColour);
+  } // min and max memory
+
+  // min and max values
+  _pscreen->setFont(0);
+  _pscreen->setFontSolid(true);
+  _pscreen->gText(_x0-_radius, _y0+_radius-_pscreen->fontY(), _frontColour, ftoa(_valueMin, 1, 0));
+  _pscreen->gText(_x0+_radius-_pscreen->fontX()*ftoa(_valueMax, 1, 0).length(), _y0+_radius-_pscreen->fontY(), _frontColour, ftoa(_valueMax, 1, 0));
+
+  // string display
+  if (sValue!="") {
+    _pscreen->setPenSolid(false);
+    _pscreen->setFontSolid(true);
+
+    uint8_t i=4;
+    do {
+      i--;
+      _pscreen->setFont(i);
+    } 
+    while ( (sValue.length()*_pscreen->fontX() > (2*_radius*0.80)) && (i>0) );
+
+    String _s = sValue.substring(0, min(sValue.length(), (2*_radius*0.80) / _pscreen->fontX()));
+    k = sValue.length()*_pscreen->fontX()/2.0;
+    l = _radius*0.90-_pscreen->fontY();
+
+    _pscreen->dRectangle(_x0-k-1, _y0+l-2, 2*k+3, _pscreen->fontY()+3, _gridColour);
+    _pscreen->gText(_x0-k, _y0+l, _frontColour, _s);
+  } // string display
+
+  _pscreen->setPenSolid(true);
+  _pscreen->circle(_x0, _y0, 3, _valueColour); 
+
+  //// debug
+  //  Serial.print(value, 2);
+  //  Serial.print("\t>");
+  //  Serial.print(z, 2);
+  //  Serial.print("\t min:");
+  //  Serial.print(_min, 2);
+  //  Serial.print("\t(");
+  //  Serial.print(_amnesiaMin, DEC);
+  //  Serial.print(")\t max:");
+  //  Serial.print(_max, 2);
+  //  Serial.print("\t(");
+  //  Serial.print(_amnesiaMax, DEC);
+  //  Serial.print(")\n");
+}
 
 
 

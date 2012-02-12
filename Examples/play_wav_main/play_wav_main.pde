@@ -1,33 +1,8 @@
-// 
-// μLCD-32PT(SGC) 3.2” Serial LCD Display Module
-// Arduino & chipKIT Library
-//
-// Example - see README.txt
-// © Rei VILO, 2010-2012
-// CC = BY NC SA
-// http://sites.google.com/site/vilorei/
-// http://github.com/rei-vilo/Serial_LCD
-//
-//
-// Based on
-// 4D LABS PICASO-SGC Command Set
-// Software Interface Specification
-// Document Date: 1st March 2011 
-// Document Revision: 6.0
-// http://www.4d-Labs.com
-//
-//
-
 #include "WProgram.h"
 #include <Wire.h>
 
 #include "Serial_LCD.h"
-#include "GUI.h"
-
-// test release
-#if GUI_RELEASE < 108
-#error required GUI_RELEASE 108
-#endif
+#include "button.h"
 
 // Arduino Case : uncomment #include
 // #if defined(__AVR__)  || defined (__AVR_ATmega328P__) works!
@@ -37,7 +12,7 @@
 
 #include "proxySerial.h"
 
-#if defined(__AVR__)  || defined (__AVR_ATmega328P__)
+#if defined(__AVR__)  || defined (__AVR_ATmega328P__) | defined (__AVR_ATmega328P__)
 // Arduino Case ---
 #include "NewSoftSerial.h"
 NewSoftSerial nss(2, 3); // RX, TX
@@ -59,23 +34,21 @@ Serial_LCD myLCD( &mySerial);
 uint16_t x, y;
 uint32_t l;
 
-button b7;
-
+button b7( &myLCD);
+button b8( &myLCD);
 
 
 void setup() {
   Serial.begin(19200);
   Serial.print("\n\n\n***\n");
 
-#if defined(__AVR__)  || defined (__AVR_ATmega328P__)
+#if defined(__AVR__)  || defined (__AVR_ATmega328P__) | defined (__AVR_ATmega328P__)
   Serial.print("avr\t");
   Serial.print(__AVR__);
-  nss.begin(9600);
   Serial.print("\n");
 #elif defined(__PIC32MX__) 
   Serial.print("chipKIT\t");
   Serial.print(__PIC32MX__);
-  Serial1.begin(9600);
   Serial.print("\n");
 #endif 
 
@@ -95,10 +68,19 @@ void setup() {
   l=millis();
 
   uint16_t i=9;
-  b7.dDefine(&myLCD,  100, 100, 79, 59, setItem(1, "STOP"), myLCD.setColour(0xff, 0xff, 0xff), myLCD.setColour(0xff, 0x00, 0x00), myLCD.setColour(0x88, 0x00, 0x00), i);
+  b7.define( 160, 120, 79, 59, "Fin",        myLCD.rgb16(0xff, 0xff, 0xff), myLCD.rgb16(0xff, 0x00, 0x00), myLCD.rgb16(0x88, 0x00, 0x00), i);
 
   b7.enable(true);
   b7.draw();
+
+  b8.define( 80, 120, 79, 59, "Son",        myLCD.rgb16(0xff, 0xff, 0xff), myLCD.rgb16(0x00, 0xff, 0x00), myLCD.rgb16(0x00, 0x88, 0x00), i);
+  if (myLCD.initSD()==6) {
+    b8.enable(true);
+  } 
+  else {
+    b8.enable(false);
+  } 
+  b8.draw();
 
   //    myLCD.setFont(3);
   //    myLCD.gText(0,  0, 0xffff, "         1         2    ");
@@ -137,6 +119,13 @@ void loop() {
     if (b7.check()) {
       myLCD.off();
       while(true);
+    } 
+    else if (b8.check()) {
+      uint8_t a=myLCD.playSoundSD("crash.wav");
+      Serial.print("Sound\t");
+      Serial.print(a, DEC);
+      Serial.print("\n");
+      delay(200);
     }
 
 
@@ -144,9 +133,10 @@ void loop() {
   }
   myLCD.setFont(0);
   myLCD.setFontSolid(true);
-  myLCD.gText( 250, 225, 0xffff, String(millis()-l));
+  myLCD.gText( 250, 225, 0xffff, ftoa((millis()-l)/1000, 3, 8));
   l=millis();
 }
+
 
 
 

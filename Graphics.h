@@ -2,7 +2,7 @@
 // μLCD-32PT(SGC) 3.2” Serial LCD Display Module
 // Arduino & chipKIT Library
 //
-// Feb 01, 2012 release 106
+// Feb 04, 2012 release 107
 // see README.txt
 //
 // © Rei VILO, 2010-2012
@@ -19,18 +19,14 @@
 // http://www.4d-Labs.com
 //
 //
-#define GRAPHICS_RELEASE 105
+#define GRAPHICS_RELEASE 107
 
 #include "WProgram.h"
 #include "Serial_LCD.h"
 
 // Test release
-#if SERIAL_LCD_RELEASE < 119
-#error required SERIAL_LCD_RELEASE 119
-#endif
-// Test release
-#if PROXYSERIAL_RELEASE < 106
-#error required PROXYSERIAL_RELEASE 106
+#if SERIAL_LCD_RELEASE < 120
+#error required SERIAL_LCD_RELEASE 120
 #endif
 
 
@@ -88,6 +84,23 @@ private:
   uint32_t _chrono;
 };
 
+
+class gGauge {
+public:
+  gGauge();
+  void define(Serial_LCD * lcd0, uint16_t x0, uint16_t y0, uint16_t radius, float valueMin, float valueMax, uint16_t memory=8, uint16_t grid=8, uint16_t backColour=blackColour, uint16_t frontColour=whiteColour, uint16_t gridColour=yellowColour, uint16_t valueColour=blueColour, uint16_t minColour=greenColour, uint16_t maxColour=redColour);
+  void dDefine(Serial_LCD * lcd0, uint16_t x0, uint16_t y0, uint16_t dx, uint16_t dy, float valueMin, float valueMax, uint16_t memory=8, uint16_t grid=8, uint16_t backColour=blackColour, uint16_t frontColour=whiteColour, uint16_t gridColour=yellowColour, uint16_t valueColour=blueColour, uint16_t minColour=greenColour, uint16_t maxColour=redColour);
+  void draw(float value, String sValue="");
+
+private:
+  Serial_LCD * _pscreen;
+  uint16_t _x0, _y0, _dx, _dy, _radius;
+  float _valueMin, _valueMax, _oldZ;
+  float _min, _max;
+  uint16_t _n, _amnesiaMin, _amnesiaMax;
+  uint16_t _lapse, _memory, _grid;
+  uint16_t _backColour, _frontColour, _gridColour, _valueColour, _minColour, _maxColour;
+};
 
 #endif
 

@@ -28,7 +28,7 @@
 #endif
 
 // Arduino Case : uncomment #include
-// #if defined(__AVR__) doesn't work!
+// #if defined(__AVR__)  || defined (__AVR_ATmega328P__) doesn't work!
 // ---
 //#include "NewSoftSerial.h"
 // ===
@@ -36,7 +36,7 @@
 #include "proxySerial.h"
 
 //// Arduino Case ---
-#if defined(__AVR__)
+#if defined(__AVR__)  || defined (__AVR_ATmega328P__) | defined (__AVR_ATmega328P__)
 #include "NewSoftSerial.h"
 NewSoftSerial nss(2, 3); // RX, TX
 ProxySerial mySerial(&nss);
@@ -64,7 +64,7 @@ void setup() {
   Serial.begin(19200);
   Serial.print("\n\n\n***\n");
 
-#if defined(__AVR__)
+#if defined(__AVR__)  || defined (__AVR_ATmega328P__) | defined (__AVR_ATmega328P__)
   Serial.print("avr\t");
   Serial.print(__AVR__);
   Serial.print("\n");

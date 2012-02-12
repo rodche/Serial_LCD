@@ -2,7 +2,7 @@
 // μLCD-32PT(SGC) 3.2” Serial LCD Display Module
 // Arduino & chipKIT Library
 //
-// Jan 28, 2012 release 118 
+// Feb 04, 2012 release 120 
 // see README.txt
 //
 // © Rei VILO, 2010-2012
@@ -101,11 +101,13 @@ uint8_t Serial_LCD::setResolutionVGA(uint8_t b) {
 
 uint8_t Serial_LCD::setSpeed(uint16_t speed) {
   uint8_t a=0x06;
-  if (speed==(uint16_t)19200) a=0x08;
-  else if (speed==(uint16_t)38400) a=0x0a;  // max for Arduino
-  else if (speed==(uint16_t)57600) a=0x0c;
+  if      (speed==(uint16_t)  9600) a=0x06;
+  else if (speed==(uint16_t) 19200) a=0x08;
+  else if (speed==(uint16_t) 38400) a=0x0a;  // max for Arduino
+  else if (speed==(uint16_t) 57600) a=0x0c;
   else if (speed==(uint16_t)115200) a=0x0d; // ok with chipKIT
-
+  else return 0x15;
+  
   if (a != 0x06) {
     _port->print('Q');
     _port->print((uint8_t)a); 
@@ -459,7 +461,11 @@ uint8_t Serial_LCD::setFont(uint8_t b) {
   // 00hex : 6x8 (5x7 false) small size font set 
   // 01hex : 8x8 medium size font set 
   // 02hex : 8x12 large size font set
-  // 03hex : 12x16 largest size font set
+  // 03hex : 12x16 largest size font set - not on uLED
+  
+  if (b>3) b=3;
+  if ( (b>2) && (_checkedScreenType==0) ) b=2;
+  
   _port->print('F');
   _port->print(b);
   _font=b;
