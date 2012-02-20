@@ -1,18 +1,19 @@
- //
+//
 // SC16IS750 I2C slave bridge to serial
 // Arduino + chipKIT Library
 //
-// Oct 06, 2011 release 1 - initial release
-// Oct 10, 2011 release 2 - Stream.h class based
-// Oct 25, 2011 release 3 - I2C address selection through parameter default=0, 1, 2 or 12
+// Jan 28, 2012 release 103 
+// see README.txt
 //
-//
+// © Rei VILO, 2010-2012
 // CC = BY NC SA
 // http://sites.google.com/site/vilorei/
+// http://github.com/rei-vilo/Serial_LCD
+//
 //
 
 #include "WProgram.h"
-#include <Wire.h>
+#include "Wire.h"
 #include "I2C_Serial.h"
 #include "Stream.h"
 
@@ -62,12 +63,6 @@ static uint8_t _readByteFrom(int8_t device, uint8_t address) {
 }
 
 // ---------------- Class
-
-I2C_Serial::I2C_Serial() 
-// constructor as per http://www.arduino.cc/cgi-bin/yabb2/YaBB.pl?num=1250997678
-{
-  _address=0x48; 
-}
 
 I2C_Serial::I2C_Serial(uint8_t n) // constructor
 {
